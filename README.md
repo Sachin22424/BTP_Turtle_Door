@@ -322,9 +322,13 @@ Feel free to extend this implementation with:
 - More sophisticated sensor models
 - Additional door states
 - Visualization tools
+<<<<<<< HEAD
 - Parameter tuning interfaces
 
 ## 📄 License
 
 MIT License - Feel free to use and modify for educational purposes.
 >>>>>>> Initial commit: Bayes Filter for Door State Estimation
+=======
+- Parameter tuning interfaces
+>>>>>>> Updated readme
