@@ -5,6 +5,30 @@
 
 This ROS package implements a Bayes filter for estimating the state of a door (open/closed) based on actions and sensor observations. The implementation follows the probabilistic robotics principles from Section 2.4.2.
 
+## 🚀 Quick Start
+
+For users who want to get started immediately:
+
+```bash
+# Clone the repository
+mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws/src
+git clone https://github.com/Sachin22424/BTP_Robot_Door.git door_state_estimation
+
+# Build and setup
+cd ~/catkin_ws
+catkin_make
+chmod +x src/door_state_estimation/scripts/bayes_filter_node.py
+source devel/setup.bash
+
+# Run the demo (5 terminals):
+# Terminal 1: roscore
+# Terminal 2: roslaunch door_state_estimation bayes_filter_demo.launch
+# Terminal 3: rostopic pub /door_action std_msgs/String "push"
+# Terminal 4: rostopic pub /door_sensor std_msgs/String "open"
+# Terminal 5: rostopic echo /door_belief
+```
+
 ## 📁 Package Structure
 
 ```
@@ -56,33 +80,98 @@ P(closed | do_nothing, closed) = 1.0
 - Python 3
 - `std_msgs` package
 
-## 🚀 Building the Package
+## 📦 Installation and Setup
 
-1. **Clone or create the workspace** (if not already done):
+### Option 1: Clone into New Workspace (Recommended for new users)
+
+1. **Install ROS Noetic** (if not already installed):
+   ```bash
+   # Add ROS repository
+   sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+   curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+   
+   # Install ROS Noetic
+   sudo apt update
+   sudo apt install ros-noetic-desktop-full
+   
+   # Initialize rosdep
+   sudo rosdep init
+   rosdep update
+   
+   # Setup environment
+   echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+2. **Create a new catkin workspace**:
    ```bash
    mkdir -p ~/catkin_ws/src
    cd ~/catkin_ws/src
    ```
 
-2. **Navigate to your workspace**:
+3. **Clone the repository**:
    ```bash
-   cd ~/Robo_Eg/catkin_ws
+   git clone https://github.com/Sachin22424/BTP_Robot_Door.git door_state_estimation
    ```
 
-3. **Make the Python script executable**:
+4. **Navigate to workspace root and build**:
+   ```bash
+   cd ~/catkin_ws
+   catkin_make
+   ```
+
+5. **Make the Python script executable**:
    ```bash
    chmod +x src/door_state_estimation/scripts/bayes_filter_node.py
    ```
 
-4. **Build the package**:
-   ```bash
-   catkin_make
-   ```
-
-5. **Source the workspace**:
+6. **Source the workspace**:
    ```bash
    source devel/setup.bash
+   echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
    ```
+
+### Option 2: Clone into Existing Workspace
+
+If you already have a catkin workspace:
+
+1. **Navigate to your workspace src directory**:
+   ```bash
+   cd ~/catkin_ws/src  # or your workspace path
+   ```
+
+2. **Clone the repository**:
+   ```bash
+   git clone https://github.com/Sachin22424/BTP_Robot_Door.git door_state_estimation
+   ```
+
+3. **Build the workspace**:
+   ```bash
+   cd ~/catkin_ws
+   catkin_make
+   chmod +x src/door_state_estimation/scripts/bayes_filter_node.py
+   source devel/setup.bash
+   ```
+
+### Expected Folder Structure After Clone
+
+After cloning, your workspace should look like this:
+```
+~/catkin_ws/
+├── build/
+├── devel/
+└── src/
+    ├── CMakeLists.txt
+    └── door_state_estimation/
+        ├── scripts/
+        │   └── bayes_filter_node.py
+        ├── launch/
+        │   └── bayes_filter_demo.launch
+        ├── CMakeLists.txt
+        ├── package.xml
+        ├── README.md
+        └── .gitignore
+```
 
 ## 🎯 Running the Demo
 
@@ -95,7 +184,7 @@ roscore
 ### Step 2: Launch the Bayes Filter Node
 Open a new terminal:
 ```bash
-cd ~/Robo_Eg/catkin_ws
+cd ~/catkin_ws
 source devel/setup.bash
 roslaunch door_state_estimation bayes_filter_demo.launch
 ```
@@ -103,7 +192,7 @@ roslaunch door_state_estimation bayes_filter_demo.launch
 ### Step 3: Publish Actions
 Open a new terminal:
 ```bash
-cd ~/Robo_Eg/catkin_ws
+cd ~/catkin_ws
 source devel/setup.bash
 
 # Publish an action (choose one)
@@ -115,7 +204,7 @@ rostopic pub /door_action std_msgs/String "do nothing"
 ### Step 4: Publish Sensor Observations
 Open a new terminal:
 ```bash
-cd ~/Robo_Eg/catkin_ws
+cd ~/catkin_ws
 source devel/setup.bash
 
 # Publish a sensor observation (choose one)
@@ -127,7 +216,7 @@ rostopic pub /door_sensor std_msgs/String "closed"
 ### Step 5: Monitor Belief Updates
 Open a new terminal:
 ```bash
-cd ~/Robo_Eg/catkin_ws
+cd ~/catkin_ws
 source devel/setup.bash
 rostopic echo /door_belief
 ```
@@ -161,7 +250,7 @@ rostopic echo /door_belief
 1. **Launch file not found**:
    ```bash
    # Make sure you've built and sourced the workspace
-   cd ~/Robo_Eg/catkin_ws
+   cd ~/catkin_ws
    catkin_make
    source devel/setup.bash
    ```
@@ -179,6 +268,17 @@ rostopic echo /door_belief
 4. **No action yet warning**:
    - Always publish an action before publishing sensor data
    - The filter needs an action to perform the prediction step
+
+5. **Package not found**:
+   ```bash
+   # Verify the package is properly installed
+   rospack find door_state_estimation
+   
+   # If not found, rebuild and source
+   cd ~/catkin_ws
+   catkin_make
+   source devel/setup.bash
+   ```
 
 ### Resetting the Filter
 
