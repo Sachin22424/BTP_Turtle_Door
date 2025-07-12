@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="door_state_estimation" type="bayes_filter_node.py" name="bayes_filter_node" output="screen" />
+</launch>
