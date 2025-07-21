@@ -1,0 +1,80 @@
+% Turtle Door State Estimation BTP Report
+% Based on IIITD_BTP_Report_Template
+\documentclass[12pt]{article}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\title{Bayesian Filter for Door State Estimation in ROS using Turtlesim}
+\author{Sachin}
+\date{July 2025}
+\begin{document}
+\maketitle
+\begin{abstract}
+This report presents a ROS-based implementation of a Bayesian filter for estimating the state of doors, visualized using the Turtlesim simulator. The robot interacts with three doors, updating its belief about each door's state based on user actions and sensor observations. All calculations and results are logged for analysis.
+\end{abstract}
+\section{Introduction}
+Robots often need to reason about uncertain environments. Door state estimation is a classic example, where the robot must decide whether a door is open or closed based on noisy sensors and actions. Bayesian filters provide a principled way to update beliefs in such scenarios.
+\section{Problem Statement}
+Given a robot and three doors in a simulated environment, estimate the state (open/closed) of each door using user actions and sensor observations. The robot should decide whether to pass through a door based on its belief.
+\section{Methodology}
+\subsection{Bayesian Filter}
+The filter maintains a belief over two states: open and closed. It uses:
+\begin{itemize}
+  \item \textbf{Motion Model}: Updates belief based on action (push/do nothing).
+  \item \textbf{Sensor Model}: Updates belief based on observation (open/closed).
+  \item \textbf{Normalization}: Ensures beliefs sum to 1.
+\end{itemize}
+\subsection{ROS and Turtlesim}
+The implementation uses ROS for node management and Turtlesim for visualization. The robot (red turtle) moves to each door (blue turtle) and interacts based on user input.
+\section{Implementation}
+\subsection{Code Structure}
+Main script: \texttt{scripts/turtle_door_bayes.py}
+\begin{itemize}
+  \item \texttt{DoorBayesFilter} class: Handles prediction and correction steps.
+  \item Robot and doors are spawned in Turtlesim.
+  \item User provides action and observation for each door.
+  \item Belief is updated and logged.
+\end{itemize}
+\subsection{Bayesian Filter Equations}
+\textbf{Prediction Step:}
+\begin{verbatim}
+bel_open = 0.8 * bel_closed_prev + 1.0 * bel_open_prev
+bel_closed = 0.2 * bel_closed_prev + 0.0 * bel_open_prev
+eta = 1.0 / (bel_open + bel_closed)
+bel_open /= (bel_open + bel_closed)
+bel_closed /= (bel_open + bel_closed)
+\end{verbatim}
+\textbf{Correction Step:}
+\begin{verbatim}
+bel_open *= 0.6  # if observation is 'open'
+bel_closed *= 0.2
+eta = 1.0 / (bel_open + bel_closed)
+bel_open /= (bel_open + bel_closed)
+bel_closed /= (bel_open + bel_closed)
+\end{verbatim}
+\section{Results}
+Example log output:
+\begin{verbatim}
+Door 1 (door1) at (4,5.5):
+Prediction step:
+  open = 0.8 * 0.500 + 1.0 * 0.500 = 0.900
+  closed = 0.2 * 0.500 + 0.0 * 0.500 = 0.100
+  eta = 1/(open+closed) = 1.000
+  normalized: open = 0.900, closed = 0.100
+Correction step:
+  open = 0.6 * 0.900 = 0.540
+  closed = 0.2 * 0.100 = 0.020
+  eta = 1/(open+closed) = 1.786
+  normalized: open = 0.964, closed = 0.036
+  Passed through door1.
+\end{verbatim}
+\section{Conclusion and Future Work}
+This implementation demonstrates Bayesian filtering for door state estimation in a simulated environment. Future work may include more complex sensor models, additional states, and improved visualization.
+\section{References}
+\begin{itemize}
+  \item Probabilistic Robotics, Thrun et al.
+  \item ROS Documentation: \url{https://wiki.ros.org/}
+  \item Turtlesim Documentation: \url{https://wiki.ros.org/turtlesim}
+\end{itemize}
+\end{document}
