@@ -1,50 +1,27 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # BTP_Turtle_Door
 =======
 # Door State Estimation using Bayes Filter
+=======
+# door_state_estimation
+>>>>>>> Initial commit: door_state_estimation package with README
 
-This ROS package implements a Bayes filter for estimating the state of a door (open/closed) based on actions and sensor observations. The implementation follows the probabilistic robotics principles from Section 2.4.2.
+This package contains a ROS node that estimates the state of a door using a Bayesian filter, visualized in turtlesim. The robot (red turtle) moves in a straight line to three doors (blue turtles), updating its belief about each door's state based on user actions and sensor observations.
 
-## 🚀 Quick Start
+## How the Code Works
 
-For users who want to get started immediately:
+- **Robot Turtle**: The default turtle (`turtle1`) is used as the robot, starting at the left-middle of the turtlesim grid.
+- **Doors**: Three doors are spawned in a straight horizontal line in front of the robot. Each door is represented by a blue turtle.
+- **Movement**: The robot moves straight to each door. If its belief that the door is open exceeds 0.5, it passes through; otherwise, it waits for further user input.
+- **User Interaction**: For each door, the user is prompted to enter an action (`push` or `do nothing`) and a sensor observation (`open` or `closed`).
+- **Bayesian Filter**: The robot updates its belief using a Bayes filter:
+  - **Prediction Step**: Updates belief based on the action and motion model.
+  - **Correction Step**: Updates belief based on the sensor observation and sensor model.
+  - **Normalization**: Ensures beliefs sum to 1.0.
+- **Logging**: All calculations (probabilities, eta, normalized beliefs) are logged to `src/door_bayes_log.txt` for each door.
 
-```bash
-# Clone the repository
-mkdir -p ~/catkin_ws/src
-cd ~/catkin_ws/src
-git clone https://github.com/Sachin22424/BTP_Robot_Door.git door_state_estimation
-
-# Build and setup
-cd ~/catkin_ws
-catkin_make
-chmod +x src/door_state_estimation/scripts/bayes_filter_node.py
-source devel/setup.bash
-
-# Run the demo (5 terminals):
-# Terminal 1: roscore
-# Terminal 2: roslaunch door_state_estimation bayes_filter_demo.launch
-# Terminal 3: rostopic pub /door_action std_msgs/String "push"
-# Terminal 4: rostopic pub /door_sensor std_msgs/String "open"
-# Terminal 5: rostopic echo /door_belief
-```
-
-## 📁 Package Structure
-
-```
-door_state_estimation/
-├── scripts/
-│   └── bayes_filter_node.py      # Main Bayes filter implementation
-├── launch/
-│   └── bayes_filter_demo.launch  # Launch file for the demo
-├── CMakeLists.txt                # Build configuration
-├── package.xml                   # Package dependencies
-└── README.md                     # This file
-```
-
-## 🧠 Algorithm Overview
-
-The Bayes filter estimates the probability distribution over door states using:
+## Calculation Details
 
 ### State Space
 - **States**: `open`, `closed`
@@ -74,250 +51,99 @@ P(open | do_nothing, closed) = 0.0
 P(closed | do_nothing, closed) = 1.0
 ```
 
-## 🔧 Prerequisites
+### Bayesian Filter Steps
 
-- ROS Noetic (Ubuntu 20.04)
-- Python 3
-- `std_msgs` package
+1. **Prediction Step**
+   - Uses the motion model to predict the new belief after an action.
+   - Example:
+     ```python
+     bel_open = 0.8 * bel_closed_prev + 1.0 * bel_open_prev
+     bel_closed = 0.2 * bel_closed_prev + 0.0 * bel_open_prev
+     eta = 1.0 / (bel_open + bel_closed)
+     bel_open /= (bel_open + bel_closed)
+     bel_closed /= (bel_open + bel_closed)
+     ```
+2. **Correction Step**
+   - Uses the sensor model to update the belief based on the observation.
+   - Example:
+     ```python
+     bel_open *= 0.6  # if observation is 'open'
+     bel_closed *= 0.2
+     eta = 1.0 / (bel_open + bel_closed)
+     bel_open /= (bel_open + bel_closed)
+     bel_closed /= (bel_open + bel_closed)
+     ```
 
-## 📦 Installation and Setup
+All steps and intermediate values are logged for each door.
 
-### Option 1: Clone into New Workspace (Recommended for new users)
+## How to Run the Code
 
-1. **Install ROS Noetic** (if not already installed):
-   ```bash
-   # Add ROS repository
-   sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-   curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
-   
-   # Install ROS Noetic
-   sudo apt update
-   sudo apt install ros-noetic-desktop-full
-   
-   # Initialize rosdep
-   sudo rosdep init
-   rosdep update
-   
-   # Setup environment
-   echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
-   source ~/.bashrc
-   ```
-
-2. **Create a new catkin workspace**:
-   ```bash
-   mkdir -p ~/catkin_ws/src
-   cd ~/catkin_ws/src
-   ```
-
-3. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Sachin22424/BTP_Robot_Door.git door_state_estimation
-   ```
-
-4. **Navigate to workspace root and build**:
-   ```bash
-   cd ~/catkin_ws
-   catkin_make
-   ```
-
-5. **Make the Python script executable**:
-   ```bash
-   chmod +x src/door_state_estimation/scripts/bayes_filter_node.py
-   ```
-
-6. **Source the workspace**:
-   ```bash
-   source devel/setup.bash
-   echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
-   ```
-
-### Option 2: Clone into Existing Workspace
-
-If you already have a catkin workspace:
-
-1. **Navigate to your workspace src directory**:
-   ```bash
-   cd ~/catkin_ws/src  # or your workspace path
-   ```
-
-2. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Sachin22424/BTP_Robot_Door.git door_state_estimation
-   ```
-
-3. **Build the workspace**:
-   ```bash
-   cd ~/catkin_ws
-   catkin_make
-   chmod +x src/door_state_estimation/scripts/bayes_filter_node.py
-   source devel/setup.bash
-   ```
-
-### Expected Folder Structure After Clone
-
-After cloning, your workspace should look like this:
-```
-~/catkin_ws/
-├── build/
-├── devel/
-└── src/
-    ├── CMakeLists.txt
-    └── door_state_estimation/
-        ├── scripts/
-        │   └── bayes_filter_node.py
-        ├── launch/
-        │   └── bayes_filter_demo.launch
-        ├── CMakeLists.txt
-        ├── package.xml
-        ├── README.md
-        └── .gitignore
-```
-
-## 🎯 Running the Demo
-
-### Step 1: Start ROS Core
-Open a terminal and run:
 ```bash
+# 1. Build the workspace
+cd ~/catkin_ws
+catkin_make
+
+# 2. Source the workspace
+source devel/setup.bash
+
+# 3. Make sure the script is executable
+chmod +x src/door_state_estimation/scripts/turtle_door_bayes.py
+
+# 4. Start ROS core (Terminal 1)
 roscore
+
+# 5. Start turtlesim (Terminal 2)
+rosrun turtlesim turtlesim_node
+
+# 6. Run the turtle door Bayes filter demo (Terminal 3)
+rosrun door_state_estimation turtle_door_bayes.py
 ```
 
-### Step 2: Launch the Bayes Filter Node
-Open a new terminal:
+## How to clone and run this code in a new workspace
+
 ```bash
+# Clone the repository
+cd ~
+git clone https://github.com/Sachin22424/BTP_Robot_Door.git
+
+# Create a new catkin workspace and add the package
+mkdir -p ~/catkin_ws/src
+cp -r ~/BTP_Robot_Door/door_state_estimation ~/catkin_ws/src/
+
+# Build and run as above
 cd ~/catkin_ws
+catkin_make
 source devel/setup.bash
-roslaunch door_state_estimation bayes_filter_demo.launch
+chmod +x src/door_state_estimation/scripts/turtle_door_bayes.py
+roscore
+rosrun turtlesim turtlesim_node
+rosrun door_state_estimation turtle_door_bayes.py
 ```
 
-### Step 3: Publish Actions
-Open a new terminal:
-```bash
-cd ~/catkin_ws
-source devel/setup.bash
+## Example Log File
 
-# Publish an action (choose one)
-rostopic pub /door_action std_msgs/String "push"
-# OR
-rostopic pub /door_action std_msgs/String "do nothing"
+After running, check `src/door_bayes_log.txt` for detailed belief calculations for each door, e.g.:
+```
+Door 1 (door1) at (4,5.5):
+Prediction step:
+  open = 0.8 * 0.500 + 1.0 * 0.500 = 0.900
+  closed = 0.2 * 0.500 + 0.0 * 0.500 = 0.100
+  eta = 1/(open+closed) = 1.000
+  normalized: open = 0.900, closed = 0.100
+Correction step:
+  open = 0.6 * 0.900 = 0.540
+  closed = 0.2 * 0.100 = 0.020
+  eta = 1/(open+closed) = 1.786
+  normalized: open = 0.964, closed = 0.036
+  Passed through door1.
 ```
 
-### Step 4: Publish Sensor Observations
-Open a new terminal:
-```bash
-cd ~/catkin_ws
-source devel/setup.bash
+## Troubleshooting
+- If you change any Python script, you do **not** need to run `catkin_make` unless you change CMakeLists.txt or want to update install targets.
+- Always source the workspace after building: `source devel/setup.bash`
+- If you get permission errors, run: `chmod +x src/door_state_estimation/scripts/turtle_door_bayes.py`
 
-# Publish a sensor observation (choose one)
-rostopic pub /door_sensor std_msgs/String "open"
-# OR
-rostopic pub /door_sensor std_msgs/String "closed"
-```
-
-### Step 5: Monitor Belief Updates
-Open a new terminal:
-```bash
-cd ~/catkin_ws
-source devel/setup.bash
-rostopic echo /door_belief
-```
-
-## 📊 Example Usage Sequence
-
-1. **Initial state**: `belief(open)=0.5, belief(closed)=0.5`
-
-2. **Publish action**: `"do nothing"`
-   
-3. **Publish sensor**: `"open"`
-   - **Result**: `belief(open)=0.750, belief(closed)=0.250`
-
-4. **Publish action**: `"push"`
-   
-5. **Publish sensor**: `"open"`
-   - **Result**: `belief(open)=0.983, belief(closed)=0.017`
-
-## 🔗 ROS Topics
-
-| Topic | Type | Description |
-|-------|------|-------------|
-| `/door_action` | `std_msgs/String` | Input: Robot actions ("push", "do nothing") |
-| `/door_sensor` | `std_msgs/String` | Input: Sensor observations ("open", "closed") |
-| `/door_belief` | `std_msgs/String` | Output: Current belief state |
-
-## 🛠 Troubleshooting
-
-### Common Issues
-
-1. **Launch file not found**:
-   ```bash
-   # Make sure you've built and sourced the workspace
-   cd ~/catkin_ws
-   catkin_make
-   source devel/setup.bash
-   ```
-
-2. **Permission denied**:
-   ```bash
-   # Make the script executable
-   chmod +x src/door_state_estimation/scripts/bayes_filter_node.py
-   ```
-
-3. **KeyError: 'close'**:
-   - Use `"closed"` instead of `"close"` for sensor observations
-   - The system expects exact string matches
-
-4. **No action yet warning**:
-   - Always publish an action before publishing sensor data
-   - The filter needs an action to perform the prediction step
-
-5. **Package not found**:
-   ```bash
-   # Verify the package is properly installed
-   rospack find door_state_estimation
-   
-   # If not found, rebuild and source
-   cd ~/catkin_ws
-   catkin_make
-   source devel/setup.bash
-   ```
-
-### Resetting the Filter
-
-To reset the belief state to initial values (0.5, 0.5):
-1. Stop the node with `Ctrl+C`
-2. Restart: `roslaunch door_state_estimation bayes_filter_demo.launch`
-
-## 📝 Code Structure
-
-The main implementation is in `scripts/bayes_filter_node.py`:
-
-- **`DoorBayesFilter` class**: Main filter implementation
-- **`action_callback()`**: Stores the latest action
-- **`sensor_callback()`**: Performs Bayes update when sensor data arrives
-- **Prediction step**: Uses motion model to predict belief after action
-- **Correction step**: Uses sensor model to update belief based on observation
-- **Normalization**: Ensures beliefs sum to 1.0
-
-## 🔬 Mathematical Implementation
-
-The Bayes filter follows this algorithm:
-
-```python
-# Prediction step
-bel_pred = Σ P(x_t | u_t, x_{t-1}) * bel(x_{t-1})
-
-# Correction step  
-bel(x_t) = η * P(z_t | x_t) * bel_pred(x_t)
-
-# where η is the normalization factor
-```
-
-## 📚 References
-
-- Probabilistic Robotics by Thrun, Burgard, and Fox
-- Section 2.4.2: Example of Bayes Filter Application
-
-## 🤝 Contributing
-
+## Contributing
 Feel free to extend this implementation with:
 - More sophisticated sensor models
 - Additional door states

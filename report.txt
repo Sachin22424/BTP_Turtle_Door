@@ -1,0 +1,92 @@
+Door State Estimation using Bayes Filter
+========================================
+
+Project Summary
+---------------
+This ROS package demonstrates Bayesian filtering for estimating the state of doors (open/closed) using robot actions and sensor observations. The code uses the turtlesim simulator for interactive visualization, making it ideal for education and research in probabilistic robotics.
+
+Motivation
+----------
+Robots must reliably estimate the state of objects in uncertain environments. Bayesian filters provide a principled approach to update beliefs based on probabilistic models of actions and sensors.
+
+System Architecture
+-------------------
+- **Robot Turtle**: The default turtle (`turtle1`) acts as the robot, moving in a straight line to three doors.
+- **Doors**: Represented by blue turtles, each door is a decision point for the robot.
+- **User Interaction**: For each door, the user provides an action (`push` or `do nothing`) and a sensor observation (`open` or `closed`).
+- **Belief Update**: The robot updates its belief about each door's state using a Bayesian filter after every action and observation.
+
+Bayesian Filter Algorithm
+-------------------------
+- **State Space**: `open`, `closed`
+- **Actions**: `push`, `do nothing`
+- **Observations**: `open`, `closed`
+
+**Sensor Model** (P(observation | true_state)):
+- P(sensor="open" | door=open) = 0.6
+- P(sensor="closed" | door=open) = 0.4
+- P(sensor="open" | door=closed) = 0.2
+- P(sensor="closed" | door=closed) = 0.8
+
+**Motion Model** (P(next_state | action, current_state)):
+- P(open | push, closed) = 0.8
+- P(closed | push, closed) = 0.2
+- P(open | push, open) = 1.0
+- P(closed | push, open) = 0.0
+- P(open | do_nothing, open) = 1.0
+- P(closed | do_nothing, open) = 0.0
+- P(open | do_nothing, closed) = 0.0
+- P(closed | do_nothing, closed) = 1.0
+
+Filter Steps
+------------
+1. **Prediction**: Updates belief based on the action and motion model.
+2. **Correction**: Updates belief based on the sensor observation and sensor model.
+3. **Normalization**: Ensures beliefs sum to 1.0.
+
+Example Calculation
+-------------------
+- Initial belief: open = 0.5, closed = 0.5
+- After action "push":
+    - open = 0.8 * 0.5 + 1.0 * 0.5 = 0.9
+    - closed = 0.2 * 0.5 + 0.0 * 0.5 = 0.1
+    - Normalize: open = 0.9, closed = 0.1
+- After observation "open":
+    - open = 0.6 * 0.9 = 0.54
+    - closed = 0.2 * 0.1 = 0.02
+    - Normalize: open ≈ 0.964, closed ≈ 0.036
+
+Visualization
+-------------
+- The robot turtle moves to each door, updating and displaying its belief.
+- If belief(open) > 0.5, the robot passes through the door; otherwise, it waits for further input.
+- All belief updates and calculations are logged to `src/door_bayes_log.txt`.
+
+How to Run
+----------
+1. Build and source the workspace:
+    cd ~/catkin_ws
+    catkin_make
+    source devel/setup.bash
+2. Make the script executable:
+    chmod +x src/door_state_estimation/scripts/turtle_door_bayes.py
+3. Start ROS core, turtlesim, and the demo in separate terminals:
+    roscore
+    rosrun turtlesim turtlesim_node
+    rosrun door_state_estimation turtle_door_bayes.py
+
+Results
+-------
+- The robot updates its belief about each door and makes decisions based on probabilistic reasoning.
+- The log file provides a transparent record of all calculations for analysis and debugging.
+
+Conclusion
+----------
+This project showcases Bayesian filtering for state estimation in robotics, emphasizing the value of probabilistic models for handling uncertainty. The turtlesim visualization makes the process intuitive and interactive for presentations and learning.
+
+Code Summary
+------------
+- The main script (`turtle_door_bayes.py`) controls the robot turtle and doors in turtlesim.
+- It implements the Bayes filter logic for belief updates after each user action and sensor input.
+- All belief calculations and decisions are logged for transparency.
+- The code is modular and easy to extend for more complex scenarios.
