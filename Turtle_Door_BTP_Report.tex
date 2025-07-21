@@ -37,22 +37,38 @@ Main script: \texttt{scripts/turtle_door_bayes.py}
   \item Belief is updated and logged.
 \end{itemize}
 \subsection{Bayesian Filter Equations}
+Let $bel_{open}^{prev}$ and $bel_{closed}^{prev}$ be the previous beliefs for the door being open and closed, respectively. Let $a$ be the action taken, and $z$ be the sensor observation.
+
 \textbf{Prediction Step:}
-\begin{verbatim}
-bel_open = 0.8 * bel_closed_prev + 1.0 * bel_open_prev
-bel_closed = 0.2 * bel_closed_prev + 0.0 * bel_open_prev
-eta = 1.0 / (bel_open + bel_closed)
-bel_open /= (bel_open + bel_closed)
-bel_closed /= (bel_open + bel_closed)
-\end{verbatim}
+\begin{equation}
+\begin{aligned}
+bel_{open}^{pred} &= P(open|a,open) \cdot bel_{open}^{prev} + P(open|a,closed) \cdot bel_{closed}^{prev} \\
+bel_{closed}^{pred} &= P(closed|a,open) \cdot bel_{open}^{prev} + P(closed|a,closed) \cdot bel_{closed}^{prev} \\
+\eta_{pred} &= \frac{1}{bel_{open}^{pred} + bel_{closed}^{pred}} \\
+bel_{open}^{pred} &= \eta_{pred} \cdot bel_{open}^{pred} \\
+bel_{closed}^{pred} &= \eta_{pred} \cdot bel_{closed}^{pred}
+\end{aligned}
+\end{equation}
+
 \textbf{Correction Step:}
-\begin{verbatim}
-bel_open *= 0.6  # if observation is 'open'
-bel_closed *= 0.2
-eta = 1.0 / (bel_open + bel_closed)
-bel_open /= (bel_open + bel_closed)
-bel_closed /= (bel_open + bel_closed)
-\end{verbatim}
+\begin{equation}
+\begin{aligned}
+bel_{open}^{corr} &= P(z|open) \cdot bel_{open}^{pred} \\
+bel_{closed}^{corr} &= P(z|closed) \cdot bel_{closed}^{pred} \\
+\eta_{corr} &= \frac{1}{bel_{open}^{corr} + bel_{closed}^{corr}} \\
+bel_{open}^{corr} &= \eta_{corr} \cdot bel_{open}^{corr} \\
+bel_{closed}^{corr} &= \eta_{corr} \cdot bel_{closed}^{corr}
+\end{aligned}
+\end{equation}
+
+Where:
+\begin{itemize}
+  \item $P(open|a,open)$, $P(open|a,closed)$, $P(closed|a,open)$, $P(closed|a,closed)$ are from the motion model.
+  \item $P(z|open)$, $P(z|closed)$ are from the sensor model.
+  \item $\eta$ is the normalization constant.
+\end{itemize}
+
+This approach allows the belief to be updated in a principled way using the action and observation, and all intermediate values (predicted beliefs, corrected beliefs, normalization constants) are logged for each door in the result log file.
 \section{Results}
 Example log output:
 \begin{verbatim}
