@@ -69,6 +69,115 @@ Where:
 \end{itemize}
 
 This approach allows the belief to be updated in a principled way using the action and observation, and all intermediate values (predicted beliefs, corrected beliefs, normalization constants) are logged for each door in the result log file.
+\subsection{Bayes Filter Illustration and Example}
+Our illustration of the Bayes filter algorithm is based on a robot estimating the state of a door using its camera. The door can be in one of two possible states: open or closed. The robot assigns equal prior probability to both states:
+\begin{align}
+    bel(X_0 = \text{open}) &= 0.5 \\
+    bel(X_0 = \text{closed}) &= 0.5
+\end{align}
+
+The sensor model is noisy, characterized by:
+\begin{align}
+    p(Z_t = \text{sense open} | X_t = \text{open}) &= 0.6 \\
+    p(Z_t = \text{sense closed} | X_t = \text{open}) &= 0.4 \\
+    p(Z_t = \text{sense open} | X_t = \text{closed}) &= 0.2 \\
+    p(Z_t = \text{sense closed} | X_t = \text{closed}) &= 0.8
+\end{align}
+
+The motion model for the action \texttt{push} is:
+\begin{align}
+    p(X_t = \text{open} | U_t = \text{push}, X_{t-1} = \text{open}) &= 1.0 \\
+    p(X_t = \text{closed} | U_t = \text{push}, X_{t-1} = \text{open}) &= 0.0 \\
+    p(X_t = \text{open} | U_t = \text{push}, X_{t-1} = \text{closed}) &= 0.8 \\
+    p(X_t = \text{closed} | U_t = \text{push}, X_{t-1} = \text{closed}) &= 0.2
+\end{align}
+
+For \texttt{do nothing}:
+\begin{align}
+    p(X_t = \text{open} | U_t = \text{do nothing}, X_{t-1} = \text{open}) &= 1.0 \\
+    p(X_t = \text{closed} | U_t = \text{do nothing}, X_{t-1} = \text{open}) &= 0.0 \\
+    p(X_t = \text{open} | U_t = \text{do nothing}, X_{t-1} = \text{closed}) &= 0.0 \\
+    p(X_t = \text{closed} | U_t = \text{do nothing}, X_{t-1} = \text{closed}) &= 1.0
+\end{align}
+
+\textbf{Worked Example:}
+Suppose at time $t$, the robot takes no control action but senses an open door. The posterior belief is calculated as:
+\begin{align}
+    bel(x_1) &= \sum_{x_0} p(x_1 | u_1, x_0) bel(x_0)
+\end{align}
+For $X_1 = \text{open}$:
+\begin{align}
+    bel(X_1 = \text{open}) &= 1 \cdot 0.5 + 0 \cdot 0.5 = 0.5
+\end{align}
+For $X_1 = \text{closed}$:
+\begin{align}
+    bel(X_1 = \text{closed}) &= 0 \cdot 0.5 + 1 \cdot 0.5 = 0.5
+\end{align}
+
+Incorporating the measurement $z_1 = \text{sense open}$:
+\begin{align}
+    bel(X_1 = \text{open}) &= \eta \cdot 0.6 \cdot 0.5 = \eta \cdot 0.3 \\
+    bel(X_1 = \text{closed}) &= \eta \cdot 0.2 \cdot 0.5 = \eta \cdot 0.1
+\end{align}
+where $\eta = (0.3 + 0.1)^{-1} = 2.5$.
+\begin{align}
+    bel(X_1 = \text{open}) &= 0.75 \\
+    bel(X_1 = \text{closed}) &= 0.25
+\end{align}
+
+For the next step, $u_2 = \text{push}$ and $z_2 = \text{sense open}$:
+\begin{align}
+    bel(X_2 = \text{open}) &= 1 \cdot 0.75 + 0.8 \cdot 0.25 = 0.95 \\
+    bel(X_2 = \text{closed}) &= 0 \cdot 0.75 + 0.2 \cdot 0.25 = 0.05
+\end{align}
+Measurement update:
+\begin{align}
+    bel(X_2 = \text{open}) &= \eta \cdot 0.6 \cdot 0.95 \approx 0.983 \\
+    bel(X_2 = \text{closed}) &= \eta \cdot 0.2 \cdot 0.05 \approx 0.017
+\end{align}
+where $\eta = (0.6 \cdot 0.95 + 0.2 \cdot 0.05)^{-1}$.
+
+\textbf{Log Output Example:}
+\begin{verbatim}
+Door 1 (door1) at (4,5.5):
+Prediction step:
+  open = 0.8 * 0.500 + 1.0 * 0.500 = 0.900
+  closed = 0.2 * 0.500 + 0.0 * 0.500 = 0.100
+  eta = 1/(open+closed) = 1.000
+  normalized: open = 0.900, closed = 0.100
+Correction step:
+  open = 0.6 * 0.900 = 0.540
+  closed = 0.2 * 0.100 = 0.020
+  eta = 1/(open+closed) = 1.786
+  normalized: open = 0.964, closed = 0.036
+  Passed through door1.
+
+Door 2 (door2) at (6,5.5):
+Prediction step:
+  open = 0.8 * 0.500 + 1.0 * 0.500 = 0.900
+  closed = 0.2 * 0.500 + 0.0 * 0.500 = 0.100
+  eta = 1/(open+closed) = 1.000
+  normalized: open = 0.900, closed = 0.100
+Correction step:
+  open = 0.6 * 0.900 = 0.540
+  closed = 0.2 * 0.100 = 0.020
+  eta = 1/(open+closed) = 1.786
+  normalized: open = 0.964, closed = 0.036
+  Passed through door2.
+
+Door 3 (door3) at (8,5.5):
+Prediction step:
+  open = 0.8 * 0.500 + 1.0 * 0.500 = 0.900
+  closed = 0.2 * 0.500 + 0.0 * 0.500 = 0.100
+  eta = 1/(open+closed) = 1.000
+  normalized: open = 0.900, closed = 0.100
+Correction step:
+  open = 0.6 * 0.900 = 0.540
+  closed = 0.2 * 0.100 = 0.020
+  eta = 1/(open+closed) = 1.786
+  normalized: open = 0.964, closed = 0.036
+  Passed through door3.
+\end{verbatim}
 \section{Results}
 Example log output:
 \begin{verbatim}
@@ -84,6 +193,32 @@ Correction step:
   eta = 1/(open+closed) = 1.786
   normalized: open = 0.964, closed = 0.036
   Passed through door1.
+
+Door 2 (door2) at (6,5.5):
+Prediction step:
+  open = 0.8 * 0.500 + 1.0 * 0.500 = 0.900
+  closed = 0.2 * 0.500 + 0.0 * 0.500 = 0.100
+  eta = 1/(open+closed) = 1.000
+  normalized: open = 0.900, closed = 0.100
+Correction step:
+  open = 0.6 * 0.900 = 0.540
+  closed = 0.2 * 0.100 = 0.020
+  eta = 1/(open+closed) = 1.786
+  normalized: open = 0.964, closed = 0.036
+  Passed through door2.
+
+Door 3 (door3) at (8,5.5):
+Prediction step:
+  open = 0.8 * 0.500 + 1.0 * 0.500 = 0.900
+  closed = 0.2 * 0.500 + 0.0 * 0.500 = 0.100
+  eta = 1/(open+closed) = 1.000
+  normalized: open = 0.900, closed = 0.100
+Correction step:
+  open = 0.6 * 0.900 = 0.540
+  closed = 0.2 * 0.100 = 0.020
+  eta = 1/(open+closed) = 1.786
+  normalized: open = 0.964, closed = 0.036
+  Passed through door3.
 \end{verbatim}
 \section{Conclusion and Future Work}
 This implementation demonstrates Bayesian filtering for door state estimation in a simulated environment. Future work may include more complex sensor models, additional states, and improved visualization.
