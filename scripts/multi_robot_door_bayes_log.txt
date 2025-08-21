@@ -1,0 +1,162 @@
+Multi-Robot Door Bayes Filter Log
+===============================
+
+
+--- robot1 Log ---
+robot1: Moving to door1 at (3.0, 3.0)
+robot1: Decided to push door1
+robot1: Pushed door1 and observed it's open
+robot1: Prior beliefs for door1: open=0.500, closed=0.500
+robot1: After prediction: open=0.900, closed=0.100
+robot1: After correction: open=0.964, closed=0.036
+robot1: Can pass through door1
+
+--- robot2 Log ---
+robot2: Receiving belief update from robot1 for door1
+robot2: Before merge - door1: open=0.500, closed=0.500
+robot2: Other robot's belief - door1: open=0.964, closed=0.036
+robot2: After merge - door1: open=0.686, closed=0.314
+robot2: Change in belief for door1: open=+0.186
+
+--- robot2 Log ---
+robot2: Moving to door4 at (9.0, 7.0)
+robot2: Decided to do nothing door4
+robot2: Observed door4 is closed
+robot2: Prior beliefs for door4: open=0.500, closed=0.500
+robot2: After prediction: open=0.500, closed=0.500
+robot2: After correction: open=0.333, closed=0.667
+robot2: Cannot pass through door4 (belief: 0.333)
+
+--- robot1 Log ---
+robot1: Receiving belief update from robot2 for door4
+robot1: Before merge - door4: open=0.500, closed=0.500
+robot1: Other robot's belief - door4: open=0.333, closed=0.667
+robot1: After merge - door4: open=0.450, closed=0.550
+robot1: Change in belief for door4: open=-0.050
+
+--- robot1 Log ---
+robot1: Moving to door5 at (5.5, 5.5)
+robot1: Decided to push door5
+robot1: Pushed door5 and observed it's open
+robot1: Prior beliefs for door5: open=0.500, closed=0.500
+robot1: After prediction: open=0.900, closed=0.100
+robot1: After correction: open=0.964, closed=0.036
+robot1: Can pass through door5
+
+--- robot2 Log ---
+robot2: Receiving belief update from robot1 for door5
+robot2: Before merge - door5: open=0.500, closed=0.500
+robot2: Other robot's belief - door5: open=0.964, closed=0.036
+robot2: After merge - door5: open=0.686, closed=0.314
+robot2: Change in belief for door5: open=+0.186
+
+--- robot2 Log ---
+robot2: Moving to door4 at (9.0, 7.0)
+robot2: Decided to push door4
+robot2: Pushed door4 and observed it's open
+robot2: Prior beliefs for door4: open=0.333, closed=0.667
+robot2: After prediction: open=0.867, closed=0.133
+robot2: After correction: open=0.951, closed=0.049
+robot2: Can pass through door4
+
+--- robot1 Log ---
+robot1: Receiving belief update from robot2 for door4
+robot1: Before merge - door4: open=0.450, closed=0.550
+robot1: Other robot's belief - door4: open=0.951, closed=0.049
+robot1: After merge - door4: open=0.600, closed=0.400
+robot1: Change in belief for door4: open=+0.150
+
+--- robot1 Log ---
+robot1: Moving to door2 at (8.0, 2.0)
+robot1: Decided to push door2
+robot1: Pushed door2 and observed it's open
+robot1: Prior beliefs for door2: open=0.500, closed=0.500
+robot1: After prediction: open=0.900, closed=0.100
+robot1: After correction: open=0.964, closed=0.036
+robot1: Can pass through door2
+
+--- robot2 Log ---
+robot2: Receiving belief update from robot1 for door2
+robot2: Before merge - door2: open=0.500, closed=0.500
+robot2: Other robot's belief - door2: open=0.964, closed=0.036
+robot2: After merge - door2: open=0.686, closed=0.314
+robot2: Change in belief for door2: open=+0.186
+
+--- robot2 Log ---
+robot2: Moving to door5 at (5.5, 5.5)
+robot2: Decided to do nothing door5
+robot2: Observed door5 is open
+robot2: Prior beliefs for door5: open=0.686, closed=0.314
+robot2: After prediction: open=0.686, closed=0.314
+robot2: After correction: open=0.867, closed=0.133
+robot2: Can pass through door5
+
+--- robot1 Log ---
+robot1: Receiving belief update from robot2 for door5
+robot1: Before merge - door5: open=0.964, closed=0.036
+robot1: Other robot's belief - door5: open=0.867, closed=0.133
+robot1: After merge - door5: open=0.935, closed=0.065
+robot1: Change in belief for door5: open=-0.029
+
+--- robot1 Log ---
+robot1: Moving to door4 at (9.0, 7.0)
+robot1: Decided to do nothing door4
+robot1: Observed door4 is open
+robot1: Prior beliefs for door4: open=0.600, closed=0.400
+robot1: After prediction: open=0.600, closed=0.400
+robot1: After correction: open=0.818, closed=0.182
+robot1: Can pass through door4
+
+--- robot2 Log ---
+robot2: Receiving belief update from robot1 for door4
+robot2: Before merge - door4: open=0.951, closed=0.049
+robot2: Other robot's belief - door4: open=0.818, closed=0.182
+robot2: After merge - door4: open=0.898, closed=0.102
+robot2: Change in belief for door4: open=-0.053
+
+--- robot2 Log ---
+robot2: Moving to door1 at (3.0, 3.0)
+robot2: Decided to do nothing door1
+robot2: Observed door1 is open
+robot2: Prior beliefs for door1: open=0.686, closed=0.314
+robot2: After prediction: open=0.686, closed=0.314
+robot2: After correction: open=0.867, closed=0.133
+robot2: Can pass through door1
+
+--- robot1 Log ---
+robot1: Receiving belief update from robot2 for door1
+robot1: Before merge - door1: open=0.964, closed=0.036
+robot1: Other robot's belief - door1: open=0.867, closed=0.133
+robot1: After merge - door1: open=0.935, closed=0.065
+robot1: Change in belief for door1: open=-0.029
+
+--- robot1 Log ---
+robot1: Moving to door3 at (2.0, 8.0)
+robot1: Decided to push door3
+robot1: Pushed door3 and observed it's open
+robot1: Prior beliefs for door3: open=0.500, closed=0.500
+robot1: After prediction: open=0.900, closed=0.100
+robot1: After correction: open=0.964, closed=0.036
+robot1: Can pass through door3
+
+--- robot2 Log ---
+robot2: Receiving belief update from robot1 for door3
+robot2: Before merge - door3: open=0.500, closed=0.500
+robot2: Other robot's belief - door3: open=0.964, closed=0.036
+robot2: After merge - door3: open=0.686, closed=0.314
+robot2: Change in belief for door3: open=+0.186
+
+==================================================
+FINAL SUMMARY
+==================================================
+robot1 passed through doors: ['door1', 'door5', 'door2', 'door4', 'door3']
+robot2 passed through doors: ['door4', 'door5', 'door1']
+robot1 can pass all doors: True
+robot2 can pass all doors: True
+
+Final beliefs for all doors:
+door1: robot1 open=0.935, robot2 open=0.867
+door2: robot1 open=0.964, robot2 open=0.686
+door3: robot1 open=0.964, robot2 open=0.686
+door4: robot1 open=0.818, robot2 open=0.898
+door5: robot1 open=0.935, robot2 open=0.867

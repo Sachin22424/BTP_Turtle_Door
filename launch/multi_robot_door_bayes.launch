@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Launch turtlesim node -->
+  <node pkg="turtlesim" type="turtlesim_node" name="turtlesim_node" output="screen"/>
+  
+  <!-- Launch the improved multi-robot door bayes filter -->
+  <node pkg="door_state_estimation" type="bayes_filter_node_new.py" name="multi_robot_door_bayes" output="screen"/>
+</launch>

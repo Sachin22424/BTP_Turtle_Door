@@ -1,24 +1,39 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# BTP_Turtle_Door
-=======
-# Door State Estimation using Bayes Filter
-=======
-# door_state_estimation
->>>>>>> Initial commit: door_state_estimation package with README
+# Multi-Robot Door State Estimation using Bayes Filter
 
-This package contains a ROS node that estimates the state of a door using a Bayesian filter, visualized in turtlesim. The robot (red turtle) moves in a straight line to three doors (blue turtles), updating its belief about each door's state based on user actions and sensor observations.
+This package contains a ROS node that demonstrates multi-robot door state estimation using Bayesian filters, visualized in turtlesim. Two robots (red and green turtles) independently explore doors scattered across the environment, sharing beliefs and updating their estimates using Bayes filters.
+
+## Latest Improvements (August 2025)
+
+### 🚀 **New Features in `bayes_filter_node_new.py`**
+
+- **Independent Multi-Robot Exploration**: Two robots work independently, choosing doors based on proximity
+- **Distributed Door Layout**: Doors positioned at different corners instead of a straight line
+- **Enhanced Visualization**: 
+  - Robot1 (Red) starts at bottom-left corner (1,1)
+  - Robot2 (Green) starts at top-right corner (10,10)
+  - Doors color-coded: Green=Open, Magenta=Closed
+  - Smooth movement with better path visualization
+- **Intelligent Belief Sharing**: Robots share beliefs after each door interaction
+- **Threshold-Based Stopping**: Robots stop when belief confidence crosses individual thresholds
 
 ## How the Code Works
 
-- **Robot Turtle**: The default turtle (`turtle1`) is used as the robot, starting at the left-middle of the turtlesim grid.
-- **Doors**: Three doors are spawned in a straight horizontal line in front of the robot. Each door is represented by a blue turtle.
-- **Movement**: The robot moves straight to each door. If its belief that the door is open exceeds 0.5, it passes through; otherwise, it waits for further user input.
-- **User Interaction**: For each door, the user is prompted to enter an action (`push` or `do nothing`) and a sensor observation (`open` or `closed`).
-- **Bayesian Filter**: The robot updates its belief using a Bayes filter:
-  - **Prediction Step**: Updates belief based on the action and motion model.
-  - **Correction Step**: Updates belief based on the sensor observation and sensor model.
-  - **Normalization**: Ensures beliefs sum to 1.0.
+### Multi-Robot System
+- **Robot1 (Red)**: Starts at (1.0, 1.0) with threshold=0.6, comm_weight=0.3
+- **Robot2 (Green)**: Starts at (10.0, 10.0) with threshold=0.5, comm_weight=0.4
+- **Door Distribution**: 5 doors positioned at: (3,3), (8,2), (2,8), (9,7), (5.5,5.5)
+
+### Movement Strategy
+- Each robot finds its closest unvisited door
+- Smooth movement with controlled approach distance (0.5 units from door)
+- Independent exploration - no sequential door visiting
+
+### Bayesian Filter Process
+1. **Action Decision**: Robot decides to "push" or "do nothing" based on current belief
+2. **Door Interaction**: Simulate pushing with 70% success probability for closed doors
+3. **Belief Update**: Apply Bayes filter with prediction and correction steps
+4. **Belief Sharing**: Share updated beliefs with other robots using weighted averaging
+5. **Threshold Check**: Stop when all doors exceed belief thresholds
 - **Logging**: All calculations (probabilities, eta, normalized beliefs) are logged to `src/door_bayes_log.txt` for each door.
 
 ## Calculation Details
