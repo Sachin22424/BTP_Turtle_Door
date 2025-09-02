@@ -104,6 +104,11 @@ source devel/setup.bash
 # 3. Make sure the script is executable
 chmod +x src/door_state_estimation/scripts/turtle_door_bayes.py
 
+# 4. Direct
+roslaunch door_state_estimation multi_robot_door_bayes.launch
+
+Other way
+
 # 4. Start ROS core (Terminal 1)
 roscore
 
