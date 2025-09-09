@@ -48,7 +48,7 @@ class Door:
             return "closed"
 
 class Robot:
-    def __init__(self, robot_id, turtle_name, x, y, doors, threshold=0.5, comm_weight=0.3):
+    def __init__(self, robot_id, turtle_name, x, y, doors, threshold=0.5, comm_weight=0.3, comm_distance_threshold=3.0):
         self.robot_id = robot_id
         self.turtle_name = turtle_name
         self.x = x
@@ -58,7 +58,10 @@ class Robot:
         self.threshold = threshold
         self.doors_passed = []
         self.comm_weight = comm_weight
+        self.comm_distance_threshold = comm_distance_threshold  # New: communication distance threshold
         self.log_entries = []
+        self.simple_log_entries = []  # New: simplified log
+        self.visited_doors = {}  # New: track when doors were visited
         
         # Wait for turtle to be spawned by main
         time.sleep(1)
@@ -168,6 +171,46 @@ class Robot:
         vel_msg.linear.x = 0
         self.velocity_publisher.publish(vel_msg)
     
+    def calculate_distance_to_robot(self, other_robot):
+        """Calculate Euclidean distance to another robot"""
+        return math.sqrt((self.x - other_robot.x) ** 2 + (self.y - other_robot.y) ** 2)
+    
+    def is_within_communication_range(self, other_robot):
+        """Check if other robot is within communication range"""
+        distance = self.calculate_distance_to_robot(other_robot)
+        return distance <= self.comm_distance_threshold
+    
+    def attempt_communication(self, door, other_robot):
+        """Attempt to communicate with another robot if within range"""
+        distance = self.calculate_distance_to_robot(other_robot)
+        
+        if self.is_within_communication_range(other_robot):
+            self.log_entries.append(f"COMMUNICATION SUCCESSFUL: Distance to {other_robot.turtle_name} = {distance:.2f} <= {self.comm_distance_threshold}")
+            self.simple_log_entries.append(f"✓ Communicated with {other_robot.turtle_name} about {door.name} (dist={distance:.2f})")
+            
+            # Share belief with other robot
+            other_robot.merge_beliefs(door, self.beliefs[door.name])
+            other_robot.log_entries.append(f"Received belief update from {self.turtle_name} for {door.name}")
+            
+            return True
+        else:
+            self.log_entries.append(f"COMMUNICATION FAILED: Distance to {other_robot.turtle_name} = {distance:.2f} > {self.comm_distance_threshold}")
+            self.simple_log_entries.append(f"✗ Failed to communicate with {other_robot.turtle_name} about {door.name} (dist={distance:.2f})")
+            
+            return False
+    
+    def revisit_door_if_needed(self, door):
+        """Check if robot needs to revisit a door based on current belief"""
+        if door.name in self.visited_doors:
+            current_belief = self.beliefs[door.name]["open"]
+            if current_belief < self.threshold and door.name in self.doors_passed:
+                # Remove from doors_passed as belief has decreased
+                self.doors_passed.remove(door.name)
+                self.log_entries.append(f"Belief for {door.name} dropped to {current_belief:.3f} < {self.threshold}. Need to revisit.")
+                self.simple_log_entries.append(f"Need to revisit {door.name} (belief={current_belief:.3f})")
+                return True
+        return False
+
     def update_belief_bayes(self, door, action, observation):
         """Update belief using Bayes filter with detailed calculations"""
         door_name = door.name
@@ -175,6 +218,9 @@ class Robot:
         # Prior beliefs bel(x_{t-1})
         bel_open_prev = self.beliefs[door_name]["open"]
         bel_closed_prev = self.beliefs[door_name]["closed"]
+        
+        # Add simple log entry for this update
+        self.simple_log_entries.append(f"Updating {door_name}: action={action}, obs={observation}, prior_open={bel_open_prev:.3f}")
         
         self.log_entries.append(f"\n=== BAYES FILTER UPDATE FOR {door_name.upper()} ===")
         self.log_entries.append(f"ACTION: {action}, OBSERVATION: {observation}")
@@ -316,6 +362,9 @@ class Robot:
         self.beliefs[door_name]["open"] = bel_open
         self.beliefs[door_name]["closed"] = bel_closed
         
+        # Add simple log entry for final result
+        self.simple_log_entries.append(f"Result {door_name}: final_open={bel_open:.3f}, can_pass={bel_open > self.threshold}")
+        
         self.log_entries.append(f"\n=== BAYES FILTER COMPLETE FOR {door_name.upper()} ===")
     
     def merge_beliefs(self, door, other_belief):
@@ -386,6 +435,9 @@ class Robot:
         change_open = merged_open - before_open
         change_closed = merged_closed - before_closed
         
+        # Add simple log entry for belief merging
+        self.simple_log_entries.append(f"Merged {door_name}: before={before_open:.3f}, after={merged_open:.3f}, change={change_open:+.3f}")
+        
         self.log_entries.append(f"\n  FUSION RESULT:")
         self.log_entries.append(f"    Final merged(open) = {merged_open:.4f}")
         self.log_entries.append(f"    Final merged(closed) = {merged_closed:.4f}")
@@ -421,16 +473,32 @@ class Robot:
                 f.write(f"{self.turtle_name}: {entry}\n")
         self.log_entries = []
     
+    def save_simple_log(self, filename):
+        """Save simplified log entries to a separate file"""
+        with open(filename, 'a') as f:
+            f.write(f"\n--- {self.turtle_name} Simple Log ---\n")
+            for entry in self.simple_log_entries:
+                f.write(f"{self.turtle_name}: {entry}\n")
+        self.simple_log_entries = []
+    
     def find_closest_door(self):
-        """Find the closest unvisited door"""
-        unvisited_doors = [door for door in self.doors if door.name not in self.doors_passed]
-        if not unvisited_doors:
+        """Find the closest door that needs attention (unvisited or needs revisiting)"""
+        # First check for doors that need revisiting due to low belief
+        doors_needing_revisit = []
+        for door in self.doors:
+            if self.revisit_door_if_needed(door):
+                doors_needing_revisit.append(door)
+        
+        # Prioritize doors that need revisiting
+        candidate_doors = doors_needing_revisit if doors_needing_revisit else [door for door in self.doors if door.name not in self.doors_passed]
+        
+        if not candidate_doors:
             return None
         
         min_distance = float('inf')
         closest_door = None
         
-        for door in unvisited_doors:
+        for door in candidate_doors:
             distance = math.sqrt((door.x - self.x) ** 2 + (door.y - self.y) ** 2)
             if distance < min_distance:
                 min_distance = distance
@@ -594,21 +662,35 @@ def main():
             # Update robot's belief using Bayes filter
             robot.update_belief_bayes(closest_door, action, observation)
             
+            # Mark door as visited
+            robot.visited_doors[closest_door.name] = time.time()
+            
             # Check if robot can pass through this door
             if robot.beliefs[closest_door.name]["open"] > robot.threshold:
                 robot.log_entries.append(f"Can pass through {closest_door.name}")
-                robot.doors_passed.append(closest_door.name)
+                if closest_door.name not in robot.doors_passed:
+                    robot.doors_passed.append(closest_door.name)
             else:
                 robot.log_entries.append(f"Cannot pass through {closest_door.name} (belief: {robot.beliefs[closest_door.name]['open']:.3f})")
             
             robot.save_log(log_file)
             
-            # Share beliefs with other active robots after visiting a door
+            # Attempt distance-based communication with other active robots
+            communication_successful = False
             for other_robot in active_robots:
                 if other_robot.robot_id != robot.robot_id:
-                    other_robot.log_entries.append(f"Receiving belief update from {robot.turtle_name} for {closest_door.name}")
-                    other_robot.merge_beliefs(closest_door, robot.beliefs[closest_door.name])
-                    other_robot.save_log(log_file)
+                    if robot.attempt_communication(closest_door, other_robot):
+                        communication_successful = True
+                        other_robot.save_log(log_file)
+            
+            # Log communication results
+            robot.simple_log_entries.append(f"Processed {closest_door.name}: belief={robot.beliefs[closest_door.name]['open']:.3f}, comm={'success' if communication_successful else 'failed'}")
+            
+            # Check if other robots need to revisit doors after communication failure
+            if not communication_successful:
+                for other_robot in active_robots:
+                    if other_robot.robot_id != robot.robot_id:
+                        other_robot.revisit_door_if_needed(closest_door)
             
             time.sleep(0.5)  # Short pause between robot actions
         
@@ -619,6 +701,9 @@ def main():
         # If both robots are still active, add a small delay to prevent race conditions
         if len(active_robots) > 1:
             time.sleep(0.3)
+    
+    # Create simple log file
+    simple_log_file = os.path.join(os.path.dirname(log_file), "simple_calculation_log.txt")
     
     # Final summary
     with open(log_file, 'a') as f:
@@ -633,11 +718,34 @@ def main():
         for door in doors:
             f.write(f"{door.name}: {robot1.turtle_name} open={robot1.beliefs[door.name]['open']:.3f}, "
                    f"{robot2.turtle_name} open={robot2.beliefs[door.name]['open']:.3f}\n")
+        
+        # Add communication statistics
+        f.write("\nCommunication Statistics:\n")
+        f.write(f"Communication distance threshold: {robot1.comm_distance_threshold}\n")
+        f.write(f"{robot1.turtle_name} communication weight: {robot1.comm_weight}\n")
+        f.write(f"{robot2.turtle_name} communication weight: {robot2.comm_weight}\n")
+    
+    # Save simple logs
+    robot1.save_simple_log(simple_log_file)
+    robot2.save_simple_log(simple_log_file)
+    
+    # Create a summary for simple log
+    with open(simple_log_file, 'a') as f:
+        f.write("\n" + "="*30 + "\n")
+        f.write("SIMPLE SUMMARY\n")
+        f.write("="*30 + "\n")
+        f.write(f"Distance threshold: {robot1.comm_distance_threshold}\n")
+        f.write(f"Robot1 success: {robot1.can_pass_all_doors()}\n")
+        f.write(f"Robot2 success: {robot2.can_pass_all_doors()}\n")
+        f.write(f"Final door beliefs:\n")
+        for door in doors:
+            f.write(f"  {door.name}: R1={robot1.beliefs[door.name]['open']:.3f}, R2={robot2.beliefs[door.name]['open']:.3f}\n")
     
     rospy.loginfo("\nSummary:")
     rospy.loginfo(f"{robot1.turtle_name} passed through doors: {robot1.doors_passed}")
     rospy.loginfo(f"{robot2.turtle_name} passed through doors: {robot2.doors_passed}")
-    rospy.loginfo(f"Log saved to: {log_file}")
+    rospy.loginfo(f"Detailed log saved to: {log_file}")
+    rospy.loginfo(f"Simple log saved to: {simple_log_file}")
 
 if __name__ == "__main__":
     try:
