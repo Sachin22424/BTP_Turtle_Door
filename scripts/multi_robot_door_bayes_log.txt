@@ -6,157 +6,1005 @@ Multi-Robot Door Bayes Filter Log
 robot1: Moving to door1 at (3.0, 3.0)
 robot1: Decided to push door1
 robot1: Pushed door1 and observed it's open
-robot1: Prior beliefs for door1: open=0.500, closed=0.500
-robot1: After prediction: open=0.900, closed=0.100
-robot1: After correction: open=0.964, closed=0.036
+robot1: 
+=== BAYES FILTER UPDATE FOR DOOR1 ===
+robot1: ACTION: push, OBSERVATION: open
+robot1: 
+Step 1: Prior belief bel(x_{t-1})
+robot1:   bel(open) = 0.5000
+robot1:   bel(closed) = 0.5000
+robot1:   Verification: 0.5000 + 0.5000 = 1.0000
+robot1: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot1:   Motion Model for action 'push':
+robot1:     P(open | push, closed) = 0.8
+robot1:     P(closed | push, closed) = 0.2
+robot1:     P(open | push, open) = 1.0
+robot1:     P(closed | push, open) = 0.0
+robot1: 
+  Prediction calculations:
+robot1:     bel^-(open) = P(open|push,closed)*bel(closed) + P(open|push,open)*bel(open)
+robot1:                 = 0.8 × 0.5000 + 1.0 × 0.5000
+robot1:                 = 0.4000 + 0.5000 = 0.9000
+robot1:     bel^-(closed) = P(closed|push,closed)*bel(closed) + P(closed|push,open)*bel(open)
+robot1:                   = 0.2 × 0.5000 + 0.0 × 0.5000
+robot1:                   = 0.1000 + 0.0000 = 0.1000
+robot1: 
+  Prediction result (before normalization):
+robot1:     bel^-(open) = 0.9000
+robot1:     bel^-(closed) = 0.1000
+robot1:     Sum = 1.0000
+robot1:   No normalization needed (sum ≈ 1.0)
+robot1: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot1:   Sensor Model probabilities:
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_closed | door_open) = 0.4
+robot1:     P(observe_open | door_closed) = 0.2
+robot1:     P(observe_closed | door_closed) = 0.8
+robot1: 
+  Observed: open
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_open | door_closed) = 0.2
+robot1: 
+  Correction calculations (before normalization):
+robot1:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.9000 = 0.5400
+robot1:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.1000 = 0.0200
+robot1: 
+  Final Normalization:
+robot1:     Sum before normalization = 0.5400 + 0.0200 = 0.5600
+robot1:     Normalization constant η = 1/0.5600 = 1.7857
+robot1:     Final bel(open) = 0.5400 × 1.7857 = 0.9643
+robot1:     Final bel(closed) = 0.0200 × 1.7857 = 0.0357
+robot1:     Verification: 0.9643 + 0.0357 = 1.0000
+robot1: 
+  WHY NORMALIZE?
+robot1:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot1:     - The proportionality constant ensures ∑P(x|z) = 1
+robot1:     - This maintains the probability distribution property
+robot1:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot1:     - Alternative: Additive update would violate probability axioms
+robot1: 
+=== BAYES FILTER COMPLETE FOR DOOR1 ===
 robot1: Can pass through door1
 
 --- robot2 Log ---
 robot2: Receiving belief update from robot1 for door1
-robot2: Before merge - door1: open=0.500, closed=0.500
-robot2: Other robot's belief - door1: open=0.964, closed=0.036
-robot2: After merge - door1: open=0.686, closed=0.314
-robot2: Change in belief for door1: open=+0.186
+robot2: 
+=== BELIEF MERGING FOR DOOR1 ===
+robot2: COMMUNICATION: Receiving belief from other robot
+robot2: 
+  Current robot's belief:
+robot2:     bel_self(open) = 0.5000
+robot2:     bel_self(closed) = 0.5000
+robot2: 
+  Other robot's belief:
+robot2:     bel_other(open) = 0.9643
+robot2:     bel_other(closed) = 0.0357
+robot2: 
+  WEIGHTED CONSENSUS FUSION:
+robot2:     Communication weight (other robot's influence) = 0.40
+robot2:     Self weight = 1 - 0.40 = 0.60
+robot2:     Other weight = 0.40
+robot2: 
+  Fusion calculations:
+robot2:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot2:                  = 0.60 × 0.5000 + 0.40 × 0.9643
+robot2:                  = 0.3000 + 0.3857 = 0.6857
+robot2:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot2:                    = 0.60 × 0.5000 + 0.40 × 0.0357
+robot2:                    = 0.3000 + 0.0143 = 0.3143
+robot2: 
+  Normalization check:
+robot2:     Sum before normalization = 0.6857 + 0.3143 = 1.0000
+robot2:     No normalization needed (sum ≈ 1.0)
+robot2: 
+  FUSION RESULT:
+robot2:     Final merged(open) = 0.6857
+robot2:     Final merged(closed) = 0.3143
+robot2:     Change in open belief: +0.1857
+robot2:     Change in closed belief: -0.1857
+robot2: 
+  WHY WEIGHTED AVERAGE?
+robot2:     - Preserves uncertainty from both robots
+robot2:     - Communication weight controls trust level
+robot2:     - Alternative: Multiplication would assume independence
+robot2:     - Alternative: Max would lose one robot's information
+robot2:     - This method: Consensus-based distributed estimation
+robot2: 
+=== BELIEF MERGING COMPLETE FOR DOOR1 ===
 
 --- robot2 Log ---
 robot2: Moving to door4 at (9.0, 7.0)
 robot2: Decided to do nothing door4
-robot2: Observed door4 is closed
-robot2: Prior beliefs for door4: open=0.500, closed=0.500
-robot2: After prediction: open=0.500, closed=0.500
-robot2: After correction: open=0.333, closed=0.667
-robot2: Cannot pass through door4 (belief: 0.333)
+robot2: Observed door4 is open
+robot2: 
+=== BAYES FILTER UPDATE FOR DOOR4 ===
+robot2: ACTION: do nothing, OBSERVATION: open
+robot2: 
+Step 1: Prior belief bel(x_{t-1})
+robot2:   bel(open) = 0.5000
+robot2:   bel(closed) = 0.5000
+robot2:   Verification: 0.5000 + 0.5000 = 1.0000
+robot2: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot2:   Motion Model for action 'do nothing':
+robot2:     P(open | do_nothing, open) = 1.0
+robot2:     P(closed | do_nothing, open) = 0.0
+robot2:     P(open | do_nothing, closed) = 0.0
+robot2:     P(closed | do_nothing, closed) = 1.0
+robot2: 
+  Prediction calculations:
+robot2:     bel^-(open) = 0.0 × 0.5000 + 1.0 × 0.5000 = 0.5000
+robot2:     bel^-(closed) = 1.0 × 0.5000 + 0.0 × 0.5000 = 0.5000
+robot2: 
+  Prediction result (before normalization):
+robot2:     bel^-(open) = 0.5000
+robot2:     bel^-(closed) = 0.5000
+robot2:     Sum = 1.0000
+robot2:   No normalization needed (sum ≈ 1.0)
+robot2: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot2:   Sensor Model probabilities:
+robot2:     P(observe_open | door_open) = 0.6
+robot2:     P(observe_closed | door_open) = 0.4
+robot2:     P(observe_open | door_closed) = 0.2
+robot2:     P(observe_closed | door_closed) = 0.8
+robot2: 
+  Observed: open
+robot2:     P(observe_open | door_open) = 0.6
+robot2:     P(observe_open | door_closed) = 0.2
+robot2: 
+  Correction calculations (before normalization):
+robot2:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.5000 = 0.3000
+robot2:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.5000 = 0.1000
+robot2: 
+  Final Normalization:
+robot2:     Sum before normalization = 0.3000 + 0.1000 = 0.4000
+robot2:     Normalization constant η = 1/0.4000 = 2.5000
+robot2:     Final bel(open) = 0.3000 × 2.5000 = 0.7500
+robot2:     Final bel(closed) = 0.1000 × 2.5000 = 0.2500
+robot2:     Verification: 0.7500 + 0.2500 = 1.0000
+robot2: 
+  WHY NORMALIZE?
+robot2:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot2:     - The proportionality constant ensures ∑P(x|z) = 1
+robot2:     - This maintains the probability distribution property
+robot2:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot2:     - Alternative: Additive update would violate probability axioms
+robot2: 
+=== BAYES FILTER COMPLETE FOR DOOR4 ===
+robot2: Can pass through door4
 
 --- robot1 Log ---
 robot1: Receiving belief update from robot2 for door4
-robot1: Before merge - door4: open=0.500, closed=0.500
-robot1: Other robot's belief - door4: open=0.333, closed=0.667
-robot1: After merge - door4: open=0.450, closed=0.550
-robot1: Change in belief for door4: open=-0.050
+robot1: 
+=== BELIEF MERGING FOR DOOR4 ===
+robot1: COMMUNICATION: Receiving belief from other robot
+robot1: 
+  Current robot's belief:
+robot1:     bel_self(open) = 0.5000
+robot1:     bel_self(closed) = 0.5000
+robot1: 
+  Other robot's belief:
+robot1:     bel_other(open) = 0.7500
+robot1:     bel_other(closed) = 0.2500
+robot1: 
+  WEIGHTED CONSENSUS FUSION:
+robot1:     Communication weight (other robot's influence) = 0.30
+robot1:     Self weight = 1 - 0.30 = 0.70
+robot1:     Other weight = 0.30
+robot1: 
+  Fusion calculations:
+robot1:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot1:                  = 0.70 × 0.5000 + 0.30 × 0.7500
+robot1:                  = 0.3500 + 0.2250 = 0.5750
+robot1:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot1:                    = 0.70 × 0.5000 + 0.30 × 0.2500
+robot1:                    = 0.3500 + 0.0750 = 0.4250
+robot1: 
+  Normalization check:
+robot1:     Sum before normalization = 0.5750 + 0.4250 = 1.0000
+robot1:     No normalization needed (sum ≈ 1.0)
+robot1: 
+  FUSION RESULT:
+robot1:     Final merged(open) = 0.5750
+robot1:     Final merged(closed) = 0.4250
+robot1:     Change in open belief: +0.0750
+robot1:     Change in closed belief: -0.0750
+robot1: 
+  WHY WEIGHTED AVERAGE?
+robot1:     - Preserves uncertainty from both robots
+robot1:     - Communication weight controls trust level
+robot1:     - Alternative: Multiplication would assume independence
+robot1:     - Alternative: Max would lose one robot's information
+robot1:     - This method: Consensus-based distributed estimation
+robot1: 
+=== BELIEF MERGING COMPLETE FOR DOOR4 ===
 
 --- robot1 Log ---
 robot1: Moving to door5 at (5.5, 5.5)
 robot1: Decided to push door5
 robot1: Pushed door5 and observed it's open
-robot1: Prior beliefs for door5: open=0.500, closed=0.500
-robot1: After prediction: open=0.900, closed=0.100
-robot1: After correction: open=0.964, closed=0.036
+robot1: 
+=== BAYES FILTER UPDATE FOR DOOR5 ===
+robot1: ACTION: push, OBSERVATION: open
+robot1: 
+Step 1: Prior belief bel(x_{t-1})
+robot1:   bel(open) = 0.5000
+robot1:   bel(closed) = 0.5000
+robot1:   Verification: 0.5000 + 0.5000 = 1.0000
+robot1: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot1:   Motion Model for action 'push':
+robot1:     P(open | push, closed) = 0.8
+robot1:     P(closed | push, closed) = 0.2
+robot1:     P(open | push, open) = 1.0
+robot1:     P(closed | push, open) = 0.0
+robot1: 
+  Prediction calculations:
+robot1:     bel^-(open) = P(open|push,closed)*bel(closed) + P(open|push,open)*bel(open)
+robot1:                 = 0.8 × 0.5000 + 1.0 × 0.5000
+robot1:                 = 0.4000 + 0.5000 = 0.9000
+robot1:     bel^-(closed) = P(closed|push,closed)*bel(closed) + P(closed|push,open)*bel(open)
+robot1:                   = 0.2 × 0.5000 + 0.0 × 0.5000
+robot1:                   = 0.1000 + 0.0000 = 0.1000
+robot1: 
+  Prediction result (before normalization):
+robot1:     bel^-(open) = 0.9000
+robot1:     bel^-(closed) = 0.1000
+robot1:     Sum = 1.0000
+robot1:   No normalization needed (sum ≈ 1.0)
+robot1: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot1:   Sensor Model probabilities:
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_closed | door_open) = 0.4
+robot1:     P(observe_open | door_closed) = 0.2
+robot1:     P(observe_closed | door_closed) = 0.8
+robot1: 
+  Observed: open
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_open | door_closed) = 0.2
+robot1: 
+  Correction calculations (before normalization):
+robot1:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.9000 = 0.5400
+robot1:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.1000 = 0.0200
+robot1: 
+  Final Normalization:
+robot1:     Sum before normalization = 0.5400 + 0.0200 = 0.5600
+robot1:     Normalization constant η = 1/0.5600 = 1.7857
+robot1:     Final bel(open) = 0.5400 × 1.7857 = 0.9643
+robot1:     Final bel(closed) = 0.0200 × 1.7857 = 0.0357
+robot1:     Verification: 0.9643 + 0.0357 = 1.0000
+robot1: 
+  WHY NORMALIZE?
+robot1:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot1:     - The proportionality constant ensures ∑P(x|z) = 1
+robot1:     - This maintains the probability distribution property
+robot1:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot1:     - Alternative: Additive update would violate probability axioms
+robot1: 
+=== BAYES FILTER COMPLETE FOR DOOR5 ===
 robot1: Can pass through door5
 
 --- robot2 Log ---
 robot2: Receiving belief update from robot1 for door5
-robot2: Before merge - door5: open=0.500, closed=0.500
-robot2: Other robot's belief - door5: open=0.964, closed=0.036
-robot2: After merge - door5: open=0.686, closed=0.314
-robot2: Change in belief for door5: open=+0.186
-
---- robot2 Log ---
-robot2: Moving to door4 at (9.0, 7.0)
-robot2: Decided to push door4
-robot2: Pushed door4 and observed it's open
-robot2: Prior beliefs for door4: open=0.333, closed=0.667
-robot2: After prediction: open=0.867, closed=0.133
-robot2: After correction: open=0.951, closed=0.049
-robot2: Can pass through door4
-
---- robot1 Log ---
-robot1: Receiving belief update from robot2 for door4
-robot1: Before merge - door4: open=0.450, closed=0.550
-robot1: Other robot's belief - door4: open=0.951, closed=0.049
-robot1: After merge - door4: open=0.600, closed=0.400
-robot1: Change in belief for door4: open=+0.150
-
---- robot1 Log ---
-robot1: Moving to door2 at (8.0, 2.0)
-robot1: Decided to push door2
-robot1: Pushed door2 and observed it's open
-robot1: Prior beliefs for door2: open=0.500, closed=0.500
-robot1: After prediction: open=0.900, closed=0.100
-robot1: After correction: open=0.964, closed=0.036
-robot1: Can pass through door2
-
---- robot2 Log ---
-robot2: Receiving belief update from robot1 for door2
-robot2: Before merge - door2: open=0.500, closed=0.500
-robot2: Other robot's belief - door2: open=0.964, closed=0.036
-robot2: After merge - door2: open=0.686, closed=0.314
-robot2: Change in belief for door2: open=+0.186
+robot2: 
+=== BELIEF MERGING FOR DOOR5 ===
+robot2: COMMUNICATION: Receiving belief from other robot
+robot2: 
+  Current robot's belief:
+robot2:     bel_self(open) = 0.5000
+robot2:     bel_self(closed) = 0.5000
+robot2: 
+  Other robot's belief:
+robot2:     bel_other(open) = 0.9643
+robot2:     bel_other(closed) = 0.0357
+robot2: 
+  WEIGHTED CONSENSUS FUSION:
+robot2:     Communication weight (other robot's influence) = 0.40
+robot2:     Self weight = 1 - 0.40 = 0.60
+robot2:     Other weight = 0.40
+robot2: 
+  Fusion calculations:
+robot2:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot2:                  = 0.60 × 0.5000 + 0.40 × 0.9643
+robot2:                  = 0.3000 + 0.3857 = 0.6857
+robot2:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot2:                    = 0.60 × 0.5000 + 0.40 × 0.0357
+robot2:                    = 0.3000 + 0.0143 = 0.3143
+robot2: 
+  Normalization check:
+robot2:     Sum before normalization = 0.6857 + 0.3143 = 1.0000
+robot2:     No normalization needed (sum ≈ 1.0)
+robot2: 
+  FUSION RESULT:
+robot2:     Final merged(open) = 0.6857
+robot2:     Final merged(closed) = 0.3143
+robot2:     Change in open belief: +0.1857
+robot2:     Change in closed belief: -0.1857
+robot2: 
+  WHY WEIGHTED AVERAGE?
+robot2:     - Preserves uncertainty from both robots
+robot2:     - Communication weight controls trust level
+robot2:     - Alternative: Multiplication would assume independence
+robot2:     - Alternative: Max would lose one robot's information
+robot2:     - This method: Consensus-based distributed estimation
+robot2: 
+=== BELIEF MERGING COMPLETE FOR DOOR5 ===
 
 --- robot2 Log ---
 robot2: Moving to door5 at (5.5, 5.5)
 robot2: Decided to do nothing door5
 robot2: Observed door5 is open
-robot2: Prior beliefs for door5: open=0.686, closed=0.314
-robot2: After prediction: open=0.686, closed=0.314
-robot2: After correction: open=0.867, closed=0.133
+robot2: 
+=== BAYES FILTER UPDATE FOR DOOR5 ===
+robot2: ACTION: do nothing, OBSERVATION: open
+robot2: 
+Step 1: Prior belief bel(x_{t-1})
+robot2:   bel(open) = 0.6857
+robot2:   bel(closed) = 0.3143
+robot2:   Verification: 0.6857 + 0.3143 = 1.0000
+robot2: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot2:   Motion Model for action 'do nothing':
+robot2:     P(open | do_nothing, open) = 1.0
+robot2:     P(closed | do_nothing, open) = 0.0
+robot2:     P(open | do_nothing, closed) = 0.0
+robot2:     P(closed | do_nothing, closed) = 1.0
+robot2: 
+  Prediction calculations:
+robot2:     bel^-(open) = 0.0 × 0.3143 + 1.0 × 0.6857 = 0.6857
+robot2:     bel^-(closed) = 1.0 × 0.3143 + 0.0 × 0.6857 = 0.3143
+robot2: 
+  Prediction result (before normalization):
+robot2:     bel^-(open) = 0.6857
+robot2:     bel^-(closed) = 0.3143
+robot2:     Sum = 1.0000
+robot2:   No normalization needed (sum ≈ 1.0)
+robot2: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot2:   Sensor Model probabilities:
+robot2:     P(observe_open | door_open) = 0.6
+robot2:     P(observe_closed | door_open) = 0.4
+robot2:     P(observe_open | door_closed) = 0.2
+robot2:     P(observe_closed | door_closed) = 0.8
+robot2: 
+  Observed: open
+robot2:     P(observe_open | door_open) = 0.6
+robot2:     P(observe_open | door_closed) = 0.2
+robot2: 
+  Correction calculations (before normalization):
+robot2:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.6857 = 0.4114
+robot2:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.3143 = 0.0629
+robot2: 
+  Final Normalization:
+robot2:     Sum before normalization = 0.4114 + 0.0629 = 0.4743
+robot2:     Normalization constant η = 1/0.4743 = 2.1084
+robot2:     Final bel(open) = 0.4114 × 2.1084 = 0.8675
+robot2:     Final bel(closed) = 0.0629 × 2.1084 = 0.1325
+robot2:     Verification: 0.8675 + 0.1325 = 1.0000
+robot2: 
+  WHY NORMALIZE?
+robot2:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot2:     - The proportionality constant ensures ∑P(x|z) = 1
+robot2:     - This maintains the probability distribution property
+robot2:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot2:     - Alternative: Additive update would violate probability axioms
+robot2: 
+=== BAYES FILTER COMPLETE FOR DOOR5 ===
 robot2: Can pass through door5
 
 --- robot1 Log ---
 robot1: Receiving belief update from robot2 for door5
-robot1: Before merge - door5: open=0.964, closed=0.036
-robot1: Other robot's belief - door5: open=0.867, closed=0.133
-robot1: After merge - door5: open=0.935, closed=0.065
-robot1: Change in belief for door5: open=-0.029
+robot1: 
+=== BELIEF MERGING FOR DOOR5 ===
+robot1: COMMUNICATION: Receiving belief from other robot
+robot1: 
+  Current robot's belief:
+robot1:     bel_self(open) = 0.9643
+robot1:     bel_self(closed) = 0.0357
+robot1: 
+  Other robot's belief:
+robot1:     bel_other(open) = 0.8675
+robot1:     bel_other(closed) = 0.1325
+robot1: 
+  WEIGHTED CONSENSUS FUSION:
+robot1:     Communication weight (other robot's influence) = 0.30
+robot1:     Self weight = 1 - 0.30 = 0.70
+robot1:     Other weight = 0.30
+robot1: 
+  Fusion calculations:
+robot1:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot1:                  = 0.70 × 0.9643 + 0.30 × 0.8675
+robot1:                  = 0.6750 + 0.2602 = 0.9352
+robot1:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot1:                    = 0.70 × 0.0357 + 0.30 × 0.1325
+robot1:                    = 0.0250 + 0.0398 = 0.0648
+robot1: 
+  Normalization check:
+robot1:     Sum before normalization = 0.9352 + 0.0648 = 1.0000
+robot1:     No normalization needed (sum ≈ 1.0)
+robot1: 
+  FUSION RESULT:
+robot1:     Final merged(open) = 0.9352
+robot1:     Final merged(closed) = 0.0648
+robot1:     Change in open belief: -0.0290
+robot1:     Change in closed belief: +0.0290
+robot1: 
+  WHY WEIGHTED AVERAGE?
+robot1:     - Preserves uncertainty from both robots
+robot1:     - Communication weight controls trust level
+robot1:     - Alternative: Multiplication would assume independence
+robot1:     - Alternative: Max would lose one robot's information
+robot1:     - This method: Consensus-based distributed estimation
+robot1: 
+=== BELIEF MERGING COMPLETE FOR DOOR5 ===
 
 --- robot1 Log ---
-robot1: Moving to door4 at (9.0, 7.0)
-robot1: Decided to do nothing door4
-robot1: Observed door4 is open
-robot1: Prior beliefs for door4: open=0.600, closed=0.400
-robot1: After prediction: open=0.600, closed=0.400
-robot1: After correction: open=0.818, closed=0.182
-robot1: Can pass through door4
+robot1: Moving to door2 at (8.0, 2.0)
+robot1: Decided to push door2
+robot1: Pushed door2 and observed it's open
+robot1: 
+=== BAYES FILTER UPDATE FOR DOOR2 ===
+robot1: ACTION: push, OBSERVATION: open
+robot1: 
+Step 1: Prior belief bel(x_{t-1})
+robot1:   bel(open) = 0.5000
+robot1:   bel(closed) = 0.5000
+robot1:   Verification: 0.5000 + 0.5000 = 1.0000
+robot1: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot1:   Motion Model for action 'push':
+robot1:     P(open | push, closed) = 0.8
+robot1:     P(closed | push, closed) = 0.2
+robot1:     P(open | push, open) = 1.0
+robot1:     P(closed | push, open) = 0.0
+robot1: 
+  Prediction calculations:
+robot1:     bel^-(open) = P(open|push,closed)*bel(closed) + P(open|push,open)*bel(open)
+robot1:                 = 0.8 × 0.5000 + 1.0 × 0.5000
+robot1:                 = 0.4000 + 0.5000 = 0.9000
+robot1:     bel^-(closed) = P(closed|push,closed)*bel(closed) + P(closed|push,open)*bel(open)
+robot1:                   = 0.2 × 0.5000 + 0.0 × 0.5000
+robot1:                   = 0.1000 + 0.0000 = 0.1000
+robot1: 
+  Prediction result (before normalization):
+robot1:     bel^-(open) = 0.9000
+robot1:     bel^-(closed) = 0.1000
+robot1:     Sum = 1.0000
+robot1:   No normalization needed (sum ≈ 1.0)
+robot1: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot1:   Sensor Model probabilities:
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_closed | door_open) = 0.4
+robot1:     P(observe_open | door_closed) = 0.2
+robot1:     P(observe_closed | door_closed) = 0.8
+robot1: 
+  Observed: open
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_open | door_closed) = 0.2
+robot1: 
+  Correction calculations (before normalization):
+robot1:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.9000 = 0.5400
+robot1:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.1000 = 0.0200
+robot1: 
+  Final Normalization:
+robot1:     Sum before normalization = 0.5400 + 0.0200 = 0.5600
+robot1:     Normalization constant η = 1/0.5600 = 1.7857
+robot1:     Final bel(open) = 0.5400 × 1.7857 = 0.9643
+robot1:     Final bel(closed) = 0.0200 × 1.7857 = 0.0357
+robot1:     Verification: 0.9643 + 0.0357 = 1.0000
+robot1: 
+  WHY NORMALIZE?
+robot1:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot1:     - The proportionality constant ensures ∑P(x|z) = 1
+robot1:     - This maintains the probability distribution property
+robot1:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot1:     - Alternative: Additive update would violate probability axioms
+robot1: 
+=== BAYES FILTER COMPLETE FOR DOOR2 ===
+robot1: Can pass through door2
 
 --- robot2 Log ---
-robot2: Receiving belief update from robot1 for door4
-robot2: Before merge - door4: open=0.951, closed=0.049
-robot2: Other robot's belief - door4: open=0.818, closed=0.182
-robot2: After merge - door4: open=0.898, closed=0.102
-robot2: Change in belief for door4: open=-0.053
+robot2: Receiving belief update from robot1 for door2
+robot2: 
+=== BELIEF MERGING FOR DOOR2 ===
+robot2: COMMUNICATION: Receiving belief from other robot
+robot2: 
+  Current robot's belief:
+robot2:     bel_self(open) = 0.5000
+robot2:     bel_self(closed) = 0.5000
+robot2: 
+  Other robot's belief:
+robot2:     bel_other(open) = 0.9643
+robot2:     bel_other(closed) = 0.0357
+robot2: 
+  WEIGHTED CONSENSUS FUSION:
+robot2:     Communication weight (other robot's influence) = 0.40
+robot2:     Self weight = 1 - 0.40 = 0.60
+robot2:     Other weight = 0.40
+robot2: 
+  Fusion calculations:
+robot2:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot2:                  = 0.60 × 0.5000 + 0.40 × 0.9643
+robot2:                  = 0.3000 + 0.3857 = 0.6857
+robot2:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot2:                    = 0.60 × 0.5000 + 0.40 × 0.0357
+robot2:                    = 0.3000 + 0.0143 = 0.3143
+robot2: 
+  Normalization check:
+robot2:     Sum before normalization = 0.6857 + 0.3143 = 1.0000
+robot2:     No normalization needed (sum ≈ 1.0)
+robot2: 
+  FUSION RESULT:
+robot2:     Final merged(open) = 0.6857
+robot2:     Final merged(closed) = 0.3143
+robot2:     Change in open belief: +0.1857
+robot2:     Change in closed belief: -0.1857
+robot2: 
+  WHY WEIGHTED AVERAGE?
+robot2:     - Preserves uncertainty from both robots
+robot2:     - Communication weight controls trust level
+robot2:     - Alternative: Multiplication would assume independence
+robot2:     - Alternative: Max would lose one robot's information
+robot2:     - This method: Consensus-based distributed estimation
+robot2: 
+=== BELIEF MERGING COMPLETE FOR DOOR2 ===
 
 --- robot2 Log ---
 robot2: Moving to door1 at (3.0, 3.0)
 robot2: Decided to do nothing door1
 robot2: Observed door1 is open
-robot2: Prior beliefs for door1: open=0.686, closed=0.314
-robot2: After prediction: open=0.686, closed=0.314
-robot2: After correction: open=0.867, closed=0.133
+robot2: 
+=== BAYES FILTER UPDATE FOR DOOR1 ===
+robot2: ACTION: do nothing, OBSERVATION: open
+robot2: 
+Step 1: Prior belief bel(x_{t-1})
+robot2:   bel(open) = 0.6857
+robot2:   bel(closed) = 0.3143
+robot2:   Verification: 0.6857 + 0.3143 = 1.0000
+robot2: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot2:   Motion Model for action 'do nothing':
+robot2:     P(open | do_nothing, open) = 1.0
+robot2:     P(closed | do_nothing, open) = 0.0
+robot2:     P(open | do_nothing, closed) = 0.0
+robot2:     P(closed | do_nothing, closed) = 1.0
+robot2: 
+  Prediction calculations:
+robot2:     bel^-(open) = 0.0 × 0.3143 + 1.0 × 0.6857 = 0.6857
+robot2:     bel^-(closed) = 1.0 × 0.3143 + 0.0 × 0.6857 = 0.3143
+robot2: 
+  Prediction result (before normalization):
+robot2:     bel^-(open) = 0.6857
+robot2:     bel^-(closed) = 0.3143
+robot2:     Sum = 1.0000
+robot2:   No normalization needed (sum ≈ 1.0)
+robot2: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot2:   Sensor Model probabilities:
+robot2:     P(observe_open | door_open) = 0.6
+robot2:     P(observe_closed | door_open) = 0.4
+robot2:     P(observe_open | door_closed) = 0.2
+robot2:     P(observe_closed | door_closed) = 0.8
+robot2: 
+  Observed: open
+robot2:     P(observe_open | door_open) = 0.6
+robot2:     P(observe_open | door_closed) = 0.2
+robot2: 
+  Correction calculations (before normalization):
+robot2:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.6857 = 0.4114
+robot2:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.3143 = 0.0629
+robot2: 
+  Final Normalization:
+robot2:     Sum before normalization = 0.4114 + 0.0629 = 0.4743
+robot2:     Normalization constant η = 1/0.4743 = 2.1084
+robot2:     Final bel(open) = 0.4114 × 2.1084 = 0.8675
+robot2:     Final bel(closed) = 0.0629 × 2.1084 = 0.1325
+robot2:     Verification: 0.8675 + 0.1325 = 1.0000
+robot2: 
+  WHY NORMALIZE?
+robot2:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot2:     - The proportionality constant ensures ∑P(x|z) = 1
+robot2:     - This maintains the probability distribution property
+robot2:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot2:     - Alternative: Additive update would violate probability axioms
+robot2: 
+=== BAYES FILTER COMPLETE FOR DOOR1 ===
 robot2: Can pass through door1
 
 --- robot1 Log ---
 robot1: Receiving belief update from robot2 for door1
-robot1: Before merge - door1: open=0.964, closed=0.036
-robot1: Other robot's belief - door1: open=0.867, closed=0.133
-robot1: After merge - door1: open=0.935, closed=0.065
-robot1: Change in belief for door1: open=-0.029
+robot1: 
+=== BELIEF MERGING FOR DOOR1 ===
+robot1: COMMUNICATION: Receiving belief from other robot
+robot1: 
+  Current robot's belief:
+robot1:     bel_self(open) = 0.9643
+robot1:     bel_self(closed) = 0.0357
+robot1: 
+  Other robot's belief:
+robot1:     bel_other(open) = 0.8675
+robot1:     bel_other(closed) = 0.1325
+robot1: 
+  WEIGHTED CONSENSUS FUSION:
+robot1:     Communication weight (other robot's influence) = 0.30
+robot1:     Self weight = 1 - 0.30 = 0.70
+robot1:     Other weight = 0.30
+robot1: 
+  Fusion calculations:
+robot1:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot1:                  = 0.70 × 0.9643 + 0.30 × 0.8675
+robot1:                  = 0.6750 + 0.2602 = 0.9352
+robot1:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot1:                    = 0.70 × 0.0357 + 0.30 × 0.1325
+robot1:                    = 0.0250 + 0.0398 = 0.0648
+robot1: 
+  Normalization check:
+robot1:     Sum before normalization = 0.9352 + 0.0648 = 1.0000
+robot1:     No normalization needed (sum ≈ 1.0)
+robot1: 
+  FUSION RESULT:
+robot1:     Final merged(open) = 0.9352
+robot1:     Final merged(closed) = 0.0648
+robot1:     Change in open belief: -0.0290
+robot1:     Change in closed belief: +0.0290
+robot1: 
+  WHY WEIGHTED AVERAGE?
+robot1:     - Preserves uncertainty from both robots
+robot1:     - Communication weight controls trust level
+robot1:     - Alternative: Multiplication would assume independence
+robot1:     - Alternative: Max would lose one robot's information
+robot1:     - This method: Consensus-based distributed estimation
+robot1: 
+=== BELIEF MERGING COMPLETE FOR DOOR1 ===
+
+--- robot1 Log ---
+robot1: Moving to door4 at (9.0, 7.0)
+robot1: Decided to push door4
+robot1: Pushed door4 and observed it's open
+robot1: 
+=== BAYES FILTER UPDATE FOR DOOR4 ===
+robot1: ACTION: push, OBSERVATION: open
+robot1: 
+Step 1: Prior belief bel(x_{t-1})
+robot1:   bel(open) = 0.5750
+robot1:   bel(closed) = 0.4250
+robot1:   Verification: 0.5750 + 0.4250 = 1.0000
+robot1: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot1:   Motion Model for action 'push':
+robot1:     P(open | push, closed) = 0.8
+robot1:     P(closed | push, closed) = 0.2
+robot1:     P(open | push, open) = 1.0
+robot1:     P(closed | push, open) = 0.0
+robot1: 
+  Prediction calculations:
+robot1:     bel^-(open) = P(open|push,closed)*bel(closed) + P(open|push,open)*bel(open)
+robot1:                 = 0.8 × 0.4250 + 1.0 × 0.5750
+robot1:                 = 0.3400 + 0.5750 = 0.9150
+robot1:     bel^-(closed) = P(closed|push,closed)*bel(closed) + P(closed|push,open)*bel(open)
+robot1:                   = 0.2 × 0.4250 + 0.0 × 0.5750
+robot1:                   = 0.0850 + 0.0000 = 0.0850
+robot1: 
+  Prediction result (before normalization):
+robot1:     bel^-(open) = 0.9150
+robot1:     bel^-(closed) = 0.0850
+robot1:     Sum = 1.0000
+robot1:   No normalization needed (sum ≈ 1.0)
+robot1: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot1:   Sensor Model probabilities:
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_closed | door_open) = 0.4
+robot1:     P(observe_open | door_closed) = 0.2
+robot1:     P(observe_closed | door_closed) = 0.8
+robot1: 
+  Observed: open
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_open | door_closed) = 0.2
+robot1: 
+  Correction calculations (before normalization):
+robot1:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.9150 = 0.5490
+robot1:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.0850 = 0.0170
+robot1: 
+  Final Normalization:
+robot1:     Sum before normalization = 0.5490 + 0.0170 = 0.5660
+robot1:     Normalization constant η = 1/0.5660 = 1.7668
+robot1:     Final bel(open) = 0.5490 × 1.7668 = 0.9700
+robot1:     Final bel(closed) = 0.0170 × 1.7668 = 0.0300
+robot1:     Verification: 0.9700 + 0.0300 = 1.0000
+robot1: 
+  WHY NORMALIZE?
+robot1:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot1:     - The proportionality constant ensures ∑P(x|z) = 1
+robot1:     - This maintains the probability distribution property
+robot1:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot1:     - Alternative: Additive update would violate probability axioms
+robot1: 
+=== BAYES FILTER COMPLETE FOR DOOR4 ===
+robot1: Can pass through door4
+
+--- robot2 Log ---
+robot2: Receiving belief update from robot1 for door4
+robot2: 
+=== BELIEF MERGING FOR DOOR4 ===
+robot2: COMMUNICATION: Receiving belief from other robot
+robot2: 
+  Current robot's belief:
+robot2:     bel_self(open) = 0.7500
+robot2:     bel_self(closed) = 0.2500
+robot2: 
+  Other robot's belief:
+robot2:     bel_other(open) = 0.9700
+robot2:     bel_other(closed) = 0.0300
+robot2: 
+  WEIGHTED CONSENSUS FUSION:
+robot2:     Communication weight (other robot's influence) = 0.40
+robot2:     Self weight = 1 - 0.40 = 0.60
+robot2:     Other weight = 0.40
+robot2: 
+  Fusion calculations:
+robot2:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot2:                  = 0.60 × 0.7500 + 0.40 × 0.9700
+robot2:                  = 0.4500 + 0.3880 = 0.8380
+robot2:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot2:                    = 0.60 × 0.2500 + 0.40 × 0.0300
+robot2:                    = 0.1500 + 0.0120 = 0.1620
+robot2: 
+  Normalization check:
+robot2:     Sum before normalization = 0.8380 + 0.1620 = 1.0000
+robot2:     No normalization needed (sum ≈ 1.0)
+robot2: 
+  FUSION RESULT:
+robot2:     Final merged(open) = 0.8380
+robot2:     Final merged(closed) = 0.1620
+robot2:     Change in open belief: +0.0880
+robot2:     Change in closed belief: -0.0880
+robot2: 
+  WHY WEIGHTED AVERAGE?
+robot2:     - Preserves uncertainty from both robots
+robot2:     - Communication weight controls trust level
+robot2:     - Alternative: Multiplication would assume independence
+robot2:     - Alternative: Max would lose one robot's information
+robot2:     - This method: Consensus-based distributed estimation
+robot2: 
+=== BELIEF MERGING COMPLETE FOR DOOR4 ===
+
+--- robot2 Log ---
+robot2: Moving to door2 at (8.0, 2.0)
+robot2: Decided to do nothing door2
+robot2: Observed door2 is open
+robot2: 
+=== BAYES FILTER UPDATE FOR DOOR2 ===
+robot2: ACTION: do nothing, OBSERVATION: open
+robot2: 
+Step 1: Prior belief bel(x_{t-1})
+robot2:   bel(open) = 0.6857
+robot2:   bel(closed) = 0.3143
+robot2:   Verification: 0.6857 + 0.3143 = 1.0000
+robot2: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot2:   Motion Model for action 'do nothing':
+robot2:     P(open | do_nothing, open) = 1.0
+robot2:     P(closed | do_nothing, open) = 0.0
+robot2:     P(open | do_nothing, closed) = 0.0
+robot2:     P(closed | do_nothing, closed) = 1.0
+robot2: 
+  Prediction calculations:
+robot2:     bel^-(open) = 0.0 × 0.3143 + 1.0 × 0.6857 = 0.6857
+robot2:     bel^-(closed) = 1.0 × 0.3143 + 0.0 × 0.6857 = 0.3143
+robot2: 
+  Prediction result (before normalization):
+robot2:     bel^-(open) = 0.6857
+robot2:     bel^-(closed) = 0.3143
+robot2:     Sum = 1.0000
+robot2:   No normalization needed (sum ≈ 1.0)
+robot2: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot2:   Sensor Model probabilities:
+robot2:     P(observe_open | door_open) = 0.6
+robot2:     P(observe_closed | door_open) = 0.4
+robot2:     P(observe_open | door_closed) = 0.2
+robot2:     P(observe_closed | door_closed) = 0.8
+robot2: 
+  Observed: open
+robot2:     P(observe_open | door_open) = 0.6
+robot2:     P(observe_open | door_closed) = 0.2
+robot2: 
+  Correction calculations (before normalization):
+robot2:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.6857 = 0.4114
+robot2:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.3143 = 0.0629
+robot2: 
+  Final Normalization:
+robot2:     Sum before normalization = 0.4114 + 0.0629 = 0.4743
+robot2:     Normalization constant η = 1/0.4743 = 2.1084
+robot2:     Final bel(open) = 0.4114 × 2.1084 = 0.8675
+robot2:     Final bel(closed) = 0.0629 × 2.1084 = 0.1325
+robot2:     Verification: 0.8675 + 0.1325 = 1.0000
+robot2: 
+  WHY NORMALIZE?
+robot2:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot2:     - The proportionality constant ensures ∑P(x|z) = 1
+robot2:     - This maintains the probability distribution property
+robot2:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot2:     - Alternative: Additive update would violate probability axioms
+robot2: 
+=== BAYES FILTER COMPLETE FOR DOOR2 ===
+robot2: Can pass through door2
+
+--- robot1 Log ---
+robot1: Receiving belief update from robot2 for door2
+robot1: 
+=== BELIEF MERGING FOR DOOR2 ===
+robot1: COMMUNICATION: Receiving belief from other robot
+robot1: 
+  Current robot's belief:
+robot1:     bel_self(open) = 0.9643
+robot1:     bel_self(closed) = 0.0357
+robot1: 
+  Other robot's belief:
+robot1:     bel_other(open) = 0.8675
+robot1:     bel_other(closed) = 0.1325
+robot1: 
+  WEIGHTED CONSENSUS FUSION:
+robot1:     Communication weight (other robot's influence) = 0.30
+robot1:     Self weight = 1 - 0.30 = 0.70
+robot1:     Other weight = 0.30
+robot1: 
+  Fusion calculations:
+robot1:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot1:                  = 0.70 × 0.9643 + 0.30 × 0.8675
+robot1:                  = 0.6750 + 0.2602 = 0.9352
+robot1:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot1:                    = 0.70 × 0.0357 + 0.30 × 0.1325
+robot1:                    = 0.0250 + 0.0398 = 0.0648
+robot1: 
+  Normalization check:
+robot1:     Sum before normalization = 0.9352 + 0.0648 = 1.0000
+robot1:     No normalization needed (sum ≈ 1.0)
+robot1: 
+  FUSION RESULT:
+robot1:     Final merged(open) = 0.9352
+robot1:     Final merged(closed) = 0.0648
+robot1:     Change in open belief: -0.0290
+robot1:     Change in closed belief: +0.0290
+robot1: 
+  WHY WEIGHTED AVERAGE?
+robot1:     - Preserves uncertainty from both robots
+robot1:     - Communication weight controls trust level
+robot1:     - Alternative: Multiplication would assume independence
+robot1:     - Alternative: Max would lose one robot's information
+robot1:     - This method: Consensus-based distributed estimation
+robot1: 
+=== BELIEF MERGING COMPLETE FOR DOOR2 ===
 
 --- robot1 Log ---
 robot1: Moving to door3 at (2.0, 8.0)
 robot1: Decided to push door3
 robot1: Pushed door3 and observed it's open
-robot1: Prior beliefs for door3: open=0.500, closed=0.500
-robot1: After prediction: open=0.900, closed=0.100
-robot1: After correction: open=0.964, closed=0.036
+robot1: 
+=== BAYES FILTER UPDATE FOR DOOR3 ===
+robot1: ACTION: push, OBSERVATION: open
+robot1: 
+Step 1: Prior belief bel(x_{t-1})
+robot1:   bel(open) = 0.5000
+robot1:   bel(closed) = 0.5000
+robot1:   Verification: 0.5000 + 0.5000 = 1.0000
+robot1: 
+Step 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{t-1})
+robot1:   Motion Model for action 'push':
+robot1:     P(open | push, closed) = 0.8
+robot1:     P(closed | push, closed) = 0.2
+robot1:     P(open | push, open) = 1.0
+robot1:     P(closed | push, open) = 0.0
+robot1: 
+  Prediction calculations:
+robot1:     bel^-(open) = P(open|push,closed)*bel(closed) + P(open|push,open)*bel(open)
+robot1:                 = 0.8 × 0.5000 + 1.0 × 0.5000
+robot1:                 = 0.4000 + 0.5000 = 0.9000
+robot1:     bel^-(closed) = P(closed|push,closed)*bel(closed) + P(closed|push,open)*bel(open)
+robot1:                   = 0.2 × 0.5000 + 0.0 × 0.5000
+robot1:                   = 0.1000 + 0.0000 = 0.1000
+robot1: 
+  Prediction result (before normalization):
+robot1:     bel^-(open) = 0.9000
+robot1:     bel^-(closed) = 0.1000
+robot1:     Sum = 1.0000
+robot1:   No normalization needed (sum ≈ 1.0)
+robot1: 
+Step 3: CORRECTION STEP - Sensor Model P(z_t | x_t)
+robot1:   Sensor Model probabilities:
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_closed | door_open) = 0.4
+robot1:     P(observe_open | door_closed) = 0.2
+robot1:     P(observe_closed | door_closed) = 0.8
+robot1: 
+  Observed: open
+robot1:     P(observe_open | door_open) = 0.6
+robot1:     P(observe_open | door_closed) = 0.2
+robot1: 
+  Correction calculations (before normalization):
+robot1:     bel(open) ∝ P(open|obs) × bel^-(open) = 0.6 × 0.9000 = 0.5400
+robot1:     bel(closed) ∝ P(open|closed) × bel^-(closed) = 0.2 × 0.1000 = 0.0200
+robot1: 
+  Final Normalization:
+robot1:     Sum before normalization = 0.5400 + 0.0200 = 0.5600
+robot1:     Normalization constant η = 1/0.5600 = 1.7857
+robot1:     Final bel(open) = 0.5400 × 1.7857 = 0.9643
+robot1:     Final bel(closed) = 0.0200 × 1.7857 = 0.0357
+robot1:     Verification: 0.9643 + 0.0357 = 1.0000
+robot1: 
+  WHY NORMALIZE?
+robot1:     - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)
+robot1:     - The proportionality constant ensures ∑P(x|z) = 1
+robot1:     - This maintains the probability distribution property
+robot1:     - Alternative: Maximum likelihood would pick max, losing uncertainty info
+robot1:     - Alternative: Additive update would violate probability axioms
+robot1: 
+=== BAYES FILTER COMPLETE FOR DOOR3 ===
 robot1: Can pass through door3
 
 --- robot2 Log ---
 robot2: Receiving belief update from robot1 for door3
-robot2: Before merge - door3: open=0.500, closed=0.500
-robot2: Other robot's belief - door3: open=0.964, closed=0.036
-robot2: After merge - door3: open=0.686, closed=0.314
-robot2: Change in belief for door3: open=+0.186
+robot2: 
+=== BELIEF MERGING FOR DOOR3 ===
+robot2: COMMUNICATION: Receiving belief from other robot
+robot2: 
+  Current robot's belief:
+robot2:     bel_self(open) = 0.5000
+robot2:     bel_self(closed) = 0.5000
+robot2: 
+  Other robot's belief:
+robot2:     bel_other(open) = 0.9643
+robot2:     bel_other(closed) = 0.0357
+robot2: 
+  WEIGHTED CONSENSUS FUSION:
+robot2:     Communication weight (other robot's influence) = 0.40
+robot2:     Self weight = 1 - 0.40 = 0.60
+robot2:     Other weight = 0.40
+robot2: 
+  Fusion calculations:
+robot2:     merged(open) = w_self × bel_self(open) + w_other × bel_other(open)
+robot2:                  = 0.60 × 0.5000 + 0.40 × 0.9643
+robot2:                  = 0.3000 + 0.3857 = 0.6857
+robot2:     merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)
+robot2:                    = 0.60 × 0.5000 + 0.40 × 0.0357
+robot2:                    = 0.3000 + 0.0143 = 0.3143
+robot2: 
+  Normalization check:
+robot2:     Sum before normalization = 0.6857 + 0.3143 = 1.0000
+robot2:     No normalization needed (sum ≈ 1.0)
+robot2: 
+  FUSION RESULT:
+robot2:     Final merged(open) = 0.6857
+robot2:     Final merged(closed) = 0.3143
+robot2:     Change in open belief: +0.1857
+robot2:     Change in closed belief: -0.1857
+robot2: 
+  WHY WEIGHTED AVERAGE?
+robot2:     - Preserves uncertainty from both robots
+robot2:     - Communication weight controls trust level
+robot2:     - Alternative: Multiplication would assume independence
+robot2:     - Alternative: Max would lose one robot's information
+robot2:     - This method: Consensus-based distributed estimation
+robot2: 
+=== BELIEF MERGING COMPLETE FOR DOOR3 ===
 
 ==================================================
 FINAL SUMMARY
 ==================================================
 robot1 passed through doors: ['door1', 'door5', 'door2', 'door4', 'door3']
-robot2 passed through doors: ['door4', 'door5', 'door1']
+robot2 passed through doors: ['door4', 'door5', 'door1', 'door2']
 robot1 can pass all doors: True
 robot2 can pass all doors: True
 
 Final beliefs for all doors:
 door1: robot1 open=0.935, robot2 open=0.867
-door2: robot1 open=0.964, robot2 open=0.686
+door2: robot1 open=0.935, robot2 open=0.867
 door3: robot1 open=0.964, robot2 open=0.686
-door4: robot1 open=0.818, robot2 open=0.898
+door4: robot1 open=0.970, robot2 open=0.838
 door5: robot1 open=0.935, robot2 open=0.867
