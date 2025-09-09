@@ -169,73 +169,238 @@ class Robot:
         self.velocity_publisher.publish(vel_msg)
     
     def update_belief_bayes(self, door, action, observation):
-        """Update belief using Bayes filter"""
+        """Update belief using Bayes filter with detailed calculations"""
         door_name = door.name
         
-        # Prior beliefs
+        # Prior beliefs bel(x_{t-1})
         bel_open_prev = self.beliefs[door_name]["open"]
         bel_closed_prev = self.beliefs[door_name]["closed"]
-        self.log_entries.append(f"Prior beliefs for {door_name}: open={bel_open_prev:.3f}, closed={bel_closed_prev:.3f}")
         
-        # Prediction step based on action model
+        self.log_entries.append(f"\n=== BAYES FILTER UPDATE FOR {door_name.upper()} ===")
+        self.log_entries.append(f"ACTION: {action}, OBSERVATION: {observation}")
+        self.log_entries.append(f"\nStep 1: Prior belief bel(x_{{t-1}})")
+        self.log_entries.append(f"  bel(open) = {bel_open_prev:.4f}")
+        self.log_entries.append(f"  bel(closed) = {bel_closed_prev:.4f}")
+        self.log_entries.append(f"  Verification: {bel_open_prev:.4f} + {bel_closed_prev:.4f} = {bel_open_prev + bel_closed_prev:.4f}")
+        
+        # PREDICTION STEP: bel^-(x_t) = ∑ P(x_t | u_t, x_{t-1}) * bel(x_{t-1})
+        self.log_entries.append(f"\nStep 2: PREDICTION STEP - Motion Model P(x_t | u_t, x_{{t-1}})")
+        
         if action == "push":
-            bel_open = 0.8 * bel_closed_prev + 1.0 * bel_open_prev
-            bel_closed = 0.2 * bel_closed_prev + 0.0 * bel_open_prev
+            # Motion model probabilities for push action
+            self.log_entries.append(f"  Motion Model for action 'push':")
+            self.log_entries.append(f"    P(open | push, closed) = 0.8")
+            self.log_entries.append(f"    P(closed | push, closed) = 0.2") 
+            self.log_entries.append(f"    P(open | push, open) = 1.0")
+            self.log_entries.append(f"    P(closed | push, open) = 0.0")
+            
+            # Detailed calculation
+            term1_open = 0.8 * bel_closed_prev
+            term2_open = 1.0 * bel_open_prev
+            term1_closed = 0.2 * bel_closed_prev
+            term2_closed = 0.0 * bel_open_prev
+            
+            self.log_entries.append(f"\n  Prediction calculations:")
+            self.log_entries.append(f"    bel^-(open) = P(open|push,closed)*bel(closed) + P(open|push,open)*bel(open)")
+            self.log_entries.append(f"                = 0.8 × {bel_closed_prev:.4f} + 1.0 × {bel_open_prev:.4f}")
+            self.log_entries.append(f"                = {term1_open:.4f} + {term2_open:.4f} = {term1_open + term2_open:.4f}")
+            
+            self.log_entries.append(f"    bel^-(closed) = P(closed|push,closed)*bel(closed) + P(closed|push,open)*bel(open)")
+            self.log_entries.append(f"                  = 0.2 × {bel_closed_prev:.4f} + 0.0 × {bel_open_prev:.4f}")
+            self.log_entries.append(f"                  = {term1_closed:.4f} + {term2_closed:.4f} = {term1_closed + term2_closed:.4f}")
+            
+            bel_open = term1_open + term2_open
+            bel_closed = term1_closed + term2_closed
+            
         else:  # do nothing
-            bel_open = 0.0 * bel_closed_prev + 1.0 * bel_open_prev
-            bel_closed = 1.0 * bel_closed_prev + 0.0 * bel_open_prev
+            self.log_entries.append(f"  Motion Model for action 'do nothing':")
+            self.log_entries.append(f"    P(open | do_nothing, open) = 1.0")
+            self.log_entries.append(f"    P(closed | do_nothing, open) = 0.0")
+            self.log_entries.append(f"    P(open | do_nothing, closed) = 0.0")
+            self.log_entries.append(f"    P(closed | do_nothing, closed) = 1.0")
+            
+            term1_open = 0.0 * bel_closed_prev
+            term2_open = 1.0 * bel_open_prev
+            term1_closed = 1.0 * bel_closed_prev
+            term2_closed = 0.0 * bel_open_prev
+            
+            self.log_entries.append(f"\n  Prediction calculations:")
+            self.log_entries.append(f"    bel^-(open) = 0.0 × {bel_closed_prev:.4f} + 1.0 × {bel_open_prev:.4f} = {term1_open + term2_open:.4f}")
+            self.log_entries.append(f"    bel^-(closed) = 1.0 × {bel_closed_prev:.4f} + 0.0 × {bel_open_prev:.4f} = {term1_closed + term2_closed:.4f}")
+            
+            bel_open = term1_open + term2_open
+            bel_closed = term1_closed + term2_closed
         
-        # Normalize after prediction
-        eta = 1.0 / (bel_open + bel_closed)
-        bel_open *= eta
-        bel_closed *= eta
+        # Check if normalization needed after prediction
+        total_before_norm = bel_open + bel_closed
+        self.log_entries.append(f"\n  Prediction result (before normalization):")
+        self.log_entries.append(f"    bel^-(open) = {bel_open:.4f}")
+        self.log_entries.append(f"    bel^-(closed) = {bel_closed:.4f}")
+        self.log_entries.append(f"    Sum = {total_before_norm:.4f}")
         
-        self.log_entries.append(f"After prediction: open={bel_open:.3f}, closed={bel_closed:.3f}")
+        if abs(total_before_norm - 1.0) > 1e-10:
+            eta_pred = 1.0 / total_before_norm
+            bel_open_unnorm = bel_open
+            bel_closed_unnorm = bel_closed
+            bel_open *= eta_pred
+            bel_closed *= eta_pred
+            self.log_entries.append(f"\n  Normalization needed: η = 1/{total_before_norm:.4f} = {eta_pred:.4f}")
+            self.log_entries.append(f"    Normalized bel^-(open) = {bel_open_unnorm:.4f} × {eta_pred:.4f} = {bel_open:.4f}")
+            self.log_entries.append(f"    Normalized bel^-(closed) = {bel_closed_unnorm:.4f} × {eta_pred:.4f} = {bel_closed:.4f}")
+        else:
+            self.log_entries.append(f"  No normalization needed (sum ≈ 1.0)")
         
-        # Correction step based on observation model
+        # CORRECTION STEP: bel(x_t) = η * P(z_t | x_t) * bel^-(x_t)
+        self.log_entries.append(f"\nStep 3: CORRECTION STEP - Sensor Model P(z_t | x_t)")
+        self.log_entries.append(f"  Sensor Model probabilities:")
+        self.log_entries.append(f"    P(observe_open | door_open) = 0.6")
+        self.log_entries.append(f"    P(observe_closed | door_open) = 0.4")
+        self.log_entries.append(f"    P(observe_open | door_closed) = 0.2")
+        self.log_entries.append(f"    P(observe_closed | door_closed) = 0.8")
+        
+        bel_open_before_correction = bel_open
+        bel_closed_before_correction = bel_closed
+        
         if observation == "open":
-            bel_open *= 0.6
-            bel_closed *= 0.2
+            likelihood_open = 0.6
+            likelihood_closed = 0.2
+            self.log_entries.append(f"\n  Observed: {observation}")
+            self.log_entries.append(f"    P(observe_open | door_open) = {likelihood_open}")
+            self.log_entries.append(f"    P(observe_open | door_closed) = {likelihood_closed}")
+            
+            bel_open *= likelihood_open
+            bel_closed *= likelihood_closed
+            
+            self.log_entries.append(f"\n  Correction calculations (before normalization):")
+            self.log_entries.append(f"    bel(open) ∝ P(open|obs) × bel^-(open) = {likelihood_open} × {bel_open_before_correction:.4f} = {bel_open:.4f}")
+            self.log_entries.append(f"    bel(closed) ∝ P(open|closed) × bel^-(closed) = {likelihood_closed} × {bel_closed_before_correction:.4f} = {bel_closed:.4f}")
+            
         else:  # observation = "closed"
-            bel_open *= 0.4
-            bel_closed *= 0.8
+            likelihood_open = 0.4
+            likelihood_closed = 0.8
+            self.log_entries.append(f"\n  Observed: {observation}")
+            self.log_entries.append(f"    P(observe_closed | door_open) = {likelihood_open}")
+            self.log_entries.append(f"    P(observe_closed | door_closed) = {likelihood_closed}")
+            
+            bel_open *= likelihood_open
+            bel_closed *= likelihood_closed
+            
+            self.log_entries.append(f"\n  Correction calculations (before normalization):")
+            self.log_entries.append(f"    bel(open) ∝ P(closed|open) × bel^-(open) = {likelihood_open} × {bel_open_before_correction:.4f} = {bel_open:.4f}")
+            self.log_entries.append(f"    bel(closed) ∝ P(closed|closed) × bel^-(closed) = {likelihood_closed} × {bel_closed_before_correction:.4f} = {bel_closed:.4f}")
         
-        # Normalize after correction
-        eta = 1.0 / (bel_open + bel_closed)
-        bel_open *= eta
-        bel_closed *= eta
+        # Normalization step for correction
+        total_unnorm = bel_open + bel_closed
+        eta_corr = 1.0 / total_unnorm
+        bel_open_unnorm = bel_open
+        bel_closed_unnorm = bel_closed
+        bel_open *= eta_corr
+        bel_closed *= eta_corr
+        
+        self.log_entries.append(f"\n  Final Normalization:")
+        self.log_entries.append(f"    Sum before normalization = {bel_open_unnorm:.4f} + {bel_closed_unnorm:.4f} = {total_unnorm:.4f}")
+        self.log_entries.append(f"    Normalization constant η = 1/{total_unnorm:.4f} = {eta_corr:.4f}")
+        self.log_entries.append(f"    Final bel(open) = {bel_open_unnorm:.4f} × {eta_corr:.4f} = {bel_open:.4f}")
+        self.log_entries.append(f"    Final bel(closed) = {bel_closed_unnorm:.4f} × {eta_corr:.4f} = {bel_closed:.4f}")
+        self.log_entries.append(f"    Verification: {bel_open:.4f} + {bel_closed:.4f} = {bel_open + bel_closed:.4f}")
+        
+        # Why this normalization?
+        self.log_entries.append(f"\n  WHY NORMALIZE?")
+        self.log_entries.append(f"    - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)")
+        self.log_entries.append(f"    - The proportionality constant ensures ∑P(x|z) = 1")
+        self.log_entries.append(f"    - This maintains the probability distribution property")
+        self.log_entries.append(f"    - Alternative: Maximum likelihood would pick max, losing uncertainty info")
+        self.log_entries.append(f"    - Alternative: Additive update would violate probability axioms")
         
         # Update beliefs
         self.beliefs[door_name]["open"] = bel_open
         self.beliefs[door_name]["closed"] = bel_closed
         
-        self.log_entries.append(f"After correction: open={bel_open:.3f}, closed={bel_closed:.3f}")
+        self.log_entries.append(f"\n=== BAYES FILTER COMPLETE FOR {door_name.upper()} ===")
     
     def merge_beliefs(self, door, other_belief):
-        """Merge this robot's belief with another robot's belief"""
+        """Merge this robot's belief with another robot's belief using weighted average"""
         door_name = door.name
         
         before_open = self.beliefs[door_name]["open"]
         before_closed = self.beliefs[door_name]["closed"]
         
-        self.log_entries.append(f"Before merge - {door_name}: open={before_open:.3f}, closed={before_closed:.3f}")
-        self.log_entries.append(f"Other robot's belief - {door_name}: open={other_belief['open']:.3f}, closed={other_belief['closed']:.3f}")
+        self.log_entries.append(f"\n=== BELIEF MERGING FOR {door_name.upper()} ===")
+        self.log_entries.append(f"COMMUNICATION: Receiving belief from other robot")
+        self.log_entries.append(f"\n  Current robot's belief:")
+        self.log_entries.append(f"    bel_self(open) = {before_open:.4f}")
+        self.log_entries.append(f"    bel_self(closed) = {before_closed:.4f}")
+        self.log_entries.append(f"\n  Other robot's belief:")
+        self.log_entries.append(f"    bel_other(open) = {other_belief['open']:.4f}")
+        self.log_entries.append(f"    bel_other(closed) = {other_belief['closed']:.4f}")
         
         # Weighted average merge
         self_weight = 1 - self.comm_weight
         other_weight = self.comm_weight
         
-        merged_open = self_weight * self.beliefs[door_name]["open"] + other_weight * other_belief["open"]
-        merged_closed = self_weight * self.beliefs[door_name]["closed"] + other_weight * other_belief["closed"]
+        self.log_entries.append(f"\n  WEIGHTED CONSENSUS FUSION:")
+        self.log_entries.append(f"    Communication weight (other robot's influence) = {self.comm_weight:.2f}")
+        self.log_entries.append(f"    Self weight = 1 - {self.comm_weight:.2f} = {self_weight:.2f}")
+        self.log_entries.append(f"    Other weight = {other_weight:.2f}")
         
-        # Normalize
+        # Calculate merged beliefs step by step
+        merged_open_term1 = self_weight * self.beliefs[door_name]["open"]
+        merged_open_term2 = other_weight * other_belief["open"]
+        merged_closed_term1 = self_weight * self.beliefs[door_name]["closed"]
+        merged_closed_term2 = other_weight * other_belief["closed"]
+        
+        merged_open = merged_open_term1 + merged_open_term2
+        merged_closed = merged_closed_term1 + merged_closed_term2
+        
+        self.log_entries.append(f"\n  Fusion calculations:")
+        self.log_entries.append(f"    merged(open) = w_self × bel_self(open) + w_other × bel_other(open)")
+        self.log_entries.append(f"                 = {self_weight:.2f} × {before_open:.4f} + {other_weight:.2f} × {other_belief['open']:.4f}")
+        self.log_entries.append(f"                 = {merged_open_term1:.4f} + {merged_open_term2:.4f} = {merged_open:.4f}")
+        
+        self.log_entries.append(f"    merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)")
+        self.log_entries.append(f"                   = {self_weight:.2f} × {before_closed:.4f} + {other_weight:.2f} × {other_belief['closed']:.4f}")
+        self.log_entries.append(f"                   = {merged_closed_term1:.4f} + {merged_closed_term2:.4f} = {merged_closed:.4f}")
+        
+        # Normalize (should be ≈1 already for weighted average, but ensure exact)
         total = merged_open + merged_closed
-        self.beliefs[door_name]["open"] = merged_open / total
-        self.beliefs[door_name]["closed"] = merged_closed / total
+        self.log_entries.append(f"\n  Normalization check:")
+        self.log_entries.append(f"    Sum before normalization = {merged_open:.4f} + {merged_closed:.4f} = {total:.4f}")
         
-        change_open = self.beliefs[door_name]["open"] - before_open
-        self.log_entries.append(f"After merge - {door_name}: open={self.beliefs[door_name]['open']:.3f}, closed={self.beliefs[door_name]['closed']:.3f}")
-        self.log_entries.append(f"Change in belief for {door_name}: open={change_open:+.3f}")
+        if abs(total - 1.0) > 1e-10:
+            eta = 1.0 / total
+            merged_open_unnorm = merged_open
+            merged_closed_unnorm = merged_closed
+            merged_open *= eta
+            merged_closed *= eta
+            self.log_entries.append(f"    Normalization needed: η = 1/{total:.4f} = {eta:.4f}")
+            self.log_entries.append(f"    Normalized merged(open) = {merged_open_unnorm:.4f} × {eta:.4f} = {merged_open:.4f}")
+            self.log_entries.append(f"    Normalized merged(closed) = {merged_closed_unnorm:.4f} × {eta:.4f} = {merged_closed:.4f}")
+        else:
+            self.log_entries.append(f"    No normalization needed (sum ≈ 1.0)")
+        
+        # Update beliefs
+        self.beliefs[door_name]["open"] = merged_open
+        self.beliefs[door_name]["closed"] = merged_closed
+        
+        # Show the change
+        change_open = merged_open - before_open
+        change_closed = merged_closed - before_closed
+        
+        self.log_entries.append(f"\n  FUSION RESULT:")
+        self.log_entries.append(f"    Final merged(open) = {merged_open:.4f}")
+        self.log_entries.append(f"    Final merged(closed) = {merged_closed:.4f}")
+        self.log_entries.append(f"    Change in open belief: {change_open:+.4f}")
+        self.log_entries.append(f"    Change in closed belief: {change_closed:+.4f}")
+        
+        # Explain why weighted average
+        self.log_entries.append(f"\n  WHY WEIGHTED AVERAGE?")
+        self.log_entries.append(f"    - Preserves uncertainty from both robots")
+        self.log_entries.append(f"    - Communication weight controls trust level")
+        self.log_entries.append(f"    - Alternative: Multiplication would assume independence")
+        self.log_entries.append(f"    - Alternative: Max would lose one robot's information")
+        self.log_entries.append(f"    - This method: Consensus-based distributed estimation")
+        
+        self.log_entries.append(f"\n=== BELIEF MERGING COMPLETE FOR {door_name.upper()} ===")
     
     def decide_action(self, door):
         """Decide whether to push or do nothing based on belief"""
