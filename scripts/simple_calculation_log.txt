@@ -64,3 +64,257 @@ Final door beliefs:
   door3: R1=0.964, R2=0.750
   door4: R1=0.964, R2=0.750
   door5: R1=0.900, R2=0.750
+
+--- robot1 Simple Log ---
+robot1: Updating door1: action=push, obs=open, prior_open=0.500
+robot1: Result door1: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door1 (dist=10.37)
+robot1: Processed door1: belief=0.964, comm=failed
+robot1: Updating door5: action=push, obs=open, prior_open=0.500
+robot1: Result door5: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door5 (dist=4.58)
+robot1: Processed door5: belief=0.964, comm=failed
+robot1: Updating door4: action=push, obs=open, prior_open=0.500
+robot1: Result door4: final_open=0.964, can_pass=True
+robot1: ✓ Communicated with robot2 about door4 (dist=0.88)
+robot1: Processed door4: belief=0.964, comm=success
+robot1: Merged door5: before=0.964, after=0.900, change=-0.064
+robot1: Updating door2: action=push, obs=open, prior_open=0.500
+robot1: Result door2: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door2 (dist=3.91)
+robot1: Processed door2: belief=0.964, comm=failed
+robot1: Updating door3: action=push, obs=open, prior_open=0.500
+robot1: Result door3: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door3 (dist=4.41)
+robot1: Processed door3: belief=0.964, comm=failed
+robot1: Merged door3: before=0.964, after=0.900, change=-0.064
+
+--- robot2 Simple Log ---
+robot2: Updating door4: action=do nothing, obs=closed, prior_open=0.500
+robot2: Result door4: final_open=0.333, can_pass=False
+robot2: ✗ Failed to communicate with robot1 about door4 (dist=8.06)
+robot2: Processed door4: belief=0.333, comm=failed
+robot2: Updating door4: action=push, obs=open, prior_open=0.333
+robot2: Result door4: final_open=0.951, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door4 (dist=4.58)
+robot2: Processed door4: belief=0.951, comm=failed
+robot2: Merged door4: before=0.951, after=0.956, change=+0.005
+robot2: Updating door5: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door5: final_open=0.750, can_pass=True
+robot2: ✓ Communicated with robot1 about door5 (dist=2.82)
+robot2: Processed door5: belief=0.750, comm=success
+robot2: Updating door1: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door1: final_open=0.750, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door1 (dist=4.92)
+robot2: Processed door1: belief=0.750, comm=failed
+robot2: Updating door3: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door3: final_open=0.750, can_pass=True
+robot2: ✓ Communicated with robot1 about door3 (dist=0.24)
+robot2: Processed door3: belief=0.750, comm=success
+robot2: Updating door2: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door2: final_open=0.750, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door2 (dist=7.55)
+robot2: Processed door2: belief=0.750, comm=failed
+
+==============================
+SIMPLE SUMMARY
+==============================
+Distance threshold: 3.0
+Robot1 success: True
+Robot2 success: True
+Final door beliefs:
+  door1: R1=0.964, R2=0.750
+  door2: R1=0.964, R2=0.750
+  door3: R1=0.900, R2=0.750
+  door4: R1=0.964, R2=0.956
+  door5: R1=0.900, R2=0.750
+
+--- robot1 Simple Log ---
+robot1: Updating door1: action=push, obs=open, prior_open=0.500
+robot1: Result door1: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door1 (dist=10.38)
+robot1: Processed door1: belief=0.964, comm=failed
+robot1: Updating door5: action=push, obs=open, prior_open=0.500
+robot1: Result door5: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door5 (dist=4.61)
+robot1: Processed door5: belief=0.964, comm=failed
+robot1: Merged door5: before=0.964, after=0.900, change=-0.064
+robot1: Updating door4: action=push, obs=open, prior_open=0.500
+robot1: Result door4: final_open=0.964, can_pass=True
+robot1: ✓ Communicated with robot2 about door4 (dist=2.84)
+robot1: Processed door4: belief=0.964, comm=success
+robot1: Updating door2: action=push, obs=open, prior_open=0.500
+robot1: Result door2: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door2 (dist=4.86)
+robot1: Processed door2: belief=0.964, comm=failed
+robot1: Updating door3: action=push, obs=closed, prior_open=0.500
+robot1: Result door3: final_open=0.818, can_pass=True
+robot1: ✓ Communicated with robot2 about door3 (dist=0.28)
+robot1: Processed door3: belief=0.818, comm=success
+robot1: Merged door3: before=0.818, after=0.680, change=-0.138
+robot1: Merged door3: before=0.680, after=0.762, change=+0.082
+
+--- robot2 Simple Log ---
+robot2: Updating door4: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door4: final_open=0.750, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door4 (dist=8.09)
+robot2: Processed door4: belief=0.750, comm=failed
+robot2: Updating door5: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door5: final_open=0.750, can_pass=True
+robot2: ✓ Communicated with robot1 about door5 (dist=0.92)
+robot2: Processed door5: belief=0.750, comm=success
+robot2: Merged door4: before=0.750, after=0.836, change=+0.086
+robot2: Updating door1: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door1: final_open=0.750, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door1 (dist=6.26)
+robot2: Processed door1: belief=0.750, comm=failed
+robot2: Updating door3: action=do nothing, obs=closed, prior_open=0.500
+robot2: Result door3: final_open=0.333, can_pass=False
+robot2: ✗ Failed to communicate with robot1 about door3 (dist=7.88)
+robot2: Processed door3: belief=0.333, comm=failed
+robot2: Merged door3: before=0.333, after=0.527, change=+0.194
+robot2: Updating door3: action=do nothing, obs=closed, prior_open=0.527
+robot2: Result door3: final_open=0.358, can_pass=False
+robot2: ✓ Communicated with robot1 about door3 (dist=0.28)
+robot2: Processed door3: belief=0.358, comm=success
+robot2: Updating door3: action=push, obs=open, prior_open=0.358
+robot2: Result door3: final_open=0.953, can_pass=True
+robot2: ✓ Communicated with robot1 about door3 (dist=0.28)
+robot2: Processed door3: belief=0.953, comm=success
+robot2: Updating door2: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door2: final_open=0.750, can_pass=True
+robot2: Processed door2: belief=0.750, comm=failed
+
+==============================
+SIMPLE SUMMARY
+==============================
+Distance threshold: 3.0
+Robot1 success: True
+Robot2 success: True
+Final door beliefs:
+  door1: R1=0.964, R2=0.750
+  door2: R1=0.964, R2=0.750
+  door3: R1=0.762, R2=0.953
+  door4: R1=0.964, R2=0.836
+  door5: R1=0.900, R2=0.750
+
+--- robot1 Simple Log ---
+robot1: Updating door1: action=push, obs=open, prior_open=0.500
+robot1: Result door1: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door1 (dist=10.39)
+robot1: Processed door1: belief=0.964, comm=failed
+robot1: Updating door5: action=push, obs=open, prior_open=0.500
+robot1: Result door5: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door5 (dist=4.63)
+robot1: Processed door5: belief=0.964, comm=failed
+robot1: Updating door3: action=push, obs=open, prior_open=0.500
+robot1: Result door3: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door3 (dist=6.80)
+robot1: Processed door3: belief=0.964, comm=failed
+robot1: Updating door4: action=push, obs=open, prior_open=0.500
+robot1: Result door4: final_open=0.964, can_pass=True
+robot1: ✓ Communicated with robot2 about door4 (dist=2.94)
+robot1: Processed door4: belief=0.964, comm=success
+robot1: Updating door2: action=push, obs=open, prior_open=0.500
+robot1: Result door2: final_open=0.964, can_pass=True
+robot1: ✗ Failed to communicate with robot2 about door2 (dist=4.81)
+robot1: Processed door2: belief=0.964, comm=failed
+robot1: Merged door2: before=0.964, after=0.900, change=-0.064
+
+--- robot2 Simple Log ---
+robot2: Updating door4: action=do nothing, obs=closed, prior_open=0.500
+robot2: Result door4: final_open=0.333, can_pass=False
+robot2: ✗ Failed to communicate with robot1 about door4 (dist=8.08)
+robot2: Processed door4: belief=0.333, comm=failed
+robot2: Updating door4: action=push, obs=open, prior_open=0.333
+robot2: Result door4: final_open=0.951, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door4 (dist=4.63)
+robot2: Processed door4: belief=0.951, comm=failed
+robot2: Updating door5: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door5: final_open=0.750, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door5 (dist=4.07)
+robot2: Processed door5: belief=0.750, comm=failed
+robot2: Merged door4: before=0.951, after=0.956, change=+0.005
+robot2: Updating door1: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door1: final_open=0.750, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door1 (dist=6.43)
+robot2: Processed door1: belief=0.750, comm=failed
+robot2: Updating door2: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door2: final_open=0.750, can_pass=True
+robot2: ✓ Communicated with robot1 about door2 (dist=0.68)
+robot2: Processed door2: belief=0.750, comm=success
+robot2: Updating door3: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door3: final_open=0.750, can_pass=True
+robot2: ✗ Failed to communicate with robot1 about door3 (dist=7.76)
+robot2: Processed door3: belief=0.750, comm=failed
+
+==============================
+SIMPLE SUMMARY
+==============================
+Distance threshold: 3.0
+Robot1 success: True
+Robot2 success: True
+Final door beliefs:
+  door1: R1=0.964, R2=0.750
+  door2: R1=0.900, R2=0.750
+  door3: R1=0.964, R2=0.750
+  door4: R1=0.964, R2=0.956
+  door5: R1=0.964, R2=0.750
+
+--- robot1 Simple Log ---
+robot1: Updating door1: action=push, obs=open, prior_open=0.500
+robot1: Result door1: final_open=0.964, can_pass=True
+robot1: ✗ COMM FAILED: robot2 about door1 (dist=10.35 > 6.0)
+robot1: Processed door1: belief=0.964, comm=failed
+robot1: Updating door5: action=push, obs=open, prior_open=0.500
+robot1: Result door5: final_open=0.964, can_pass=True
+robot1: ✓ COMM SUCCESS: robot2 about door5 (dist=4.57)
+robot1: Processed door5: belief=0.964, comm=success
+robot1: MERGED door5: 0.964 → 0.935 (change: -0.029)
+robot1: Updating door4: action=push, obs=open, prior_open=0.500
+robot1: Result door4: final_open=0.964, can_pass=True
+robot1: ✓ COMM SUCCESS: robot2 about door4 (dist=2.84)
+robot1: Processed door4: belief=0.964, comm=success
+robot1: Updating door2: action=push, obs=open, prior_open=0.500
+robot1: Result door2: final_open=0.964, can_pass=True
+robot1: ✓ COMM SUCCESS: robot2 about door2 (dist=4.90)
+robot1: Processed door2: belief=0.964, comm=success
+robot1: Updating door3: action=push, obs=open, prior_open=0.500
+robot1: Result door3: final_open=0.964, can_pass=True
+robot1: ✓ COMM SUCCESS: robot2 about door3 (dist=0.29)
+robot1: Processed door3: belief=0.964, comm=success
+
+--- robot2 Simple Log ---
+robot2: Updating door4: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door4: final_open=0.750, can_pass=True
+robot2: ✗ COMM FAILED: robot1 about door4 (dist=8.03 > 6.0)
+robot2: Processed door4: belief=0.750, comm=failed
+robot2: MERGED door5: 0.500 → 0.686 (change: +0.186)
+robot2: Updating door5: action=do nothing, obs=open, prior_open=0.686
+robot2: Result door5: final_open=0.867, can_pass=True
+robot2: ✓ COMM SUCCESS: robot1 about door5 (dist=0.93)
+robot2: Processed door5: belief=0.867, comm=success
+robot2: MERGED door4: 0.750 → 0.836 (change: +0.086)
+robot2: Updating door1: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door1: final_open=0.750, can_pass=True
+robot2: ✗ COMM FAILED: robot1 about door1 (dist=6.26 > 6.0)
+robot2: Processed door1: belief=0.750, comm=failed
+robot2: MERGED door2: 0.500 → 0.686 (change: +0.186)
+robot2: Updating door3: action=do nothing, obs=open, prior_open=0.500
+robot2: Result door3: final_open=0.750, can_pass=True
+robot2: ✗ COMM FAILED: robot1 about door3 (dist=7.96 > 6.0)
+robot2: Processed door3: belief=0.750, comm=failed
+robot2: MERGED door3: 0.750 → 0.836 (change: +0.086)
+
+==============================
+SIMPLE SUMMARY
+==============================
+Distance threshold: 6.0
+Robot1 success: True
+Robot2 success: True
+Final door beliefs:
+  door1: R1=0.964, R2=0.750
+  door2: R1=0.964, R2=0.686
+  door3: R1=0.964, R2=0.836
+  door4: R1=0.964, R2=0.836
+  door5: R1=0.935, R2=0.867

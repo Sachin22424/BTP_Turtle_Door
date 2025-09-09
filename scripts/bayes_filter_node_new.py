@@ -184,18 +184,25 @@ class Robot:
         """Attempt to communicate with another robot if within range"""
         distance = self.calculate_distance_to_robot(other_robot)
         
-        if self.is_within_communication_range(other_robot):
-            self.log_entries.append(f"COMMUNICATION SUCCESSFUL: Distance to {other_robot.turtle_name} = {distance:.2f} <= {self.comm_distance_threshold}")
-            self.simple_log_entries.append(f"✓ Communicated with {other_robot.turtle_name} about {door.name} (dist={distance:.2f})")
+        self.log_entries.append(f"\n📡 ATTEMPTING COMMUNICATION ABOUT {door.name.upper()}")
+        self.log_entries.append(f"   My position: ({self.x:.1f}, {self.y:.1f})")
+        self.log_entries.append(f"   {other_robot.turtle_name} position: ({other_robot.x:.1f}, {other_robot.y:.1f})")
+        self.log_entries.append(f"   Distance: {distance:.2f} units")
+        self.log_entries.append(f"   Communication range: {self.comm_distance_threshold:.1f} units")
+        
+        if distance <= self.comm_distance_threshold:
+            self.log_entries.append(f"   ✅ SUCCESS! {distance:.2f} ≤ {self.comm_distance_threshold:.1f} → Can communicate!")
+            self.simple_log_entries.append(f"✓ COMM SUCCESS: {other_robot.turtle_name} about {door.name} (dist={distance:.2f})")
             
             # Share belief with other robot
+            self.log_entries.append(f"   📤 Sending my belief about {door.name}: open={self.beliefs[door.name]['open']:.3f}")
             other_robot.merge_beliefs(door, self.beliefs[door.name])
-            other_robot.log_entries.append(f"Received belief update from {self.turtle_name} for {door.name}")
+            other_robot.log_entries.append(f"📥 Received belief from {self.turtle_name} about {door.name}")
             
             return True
         else:
-            self.log_entries.append(f"COMMUNICATION FAILED: Distance to {other_robot.turtle_name} = {distance:.2f} > {self.comm_distance_threshold}")
-            self.simple_log_entries.append(f"✗ Failed to communicate with {other_robot.turtle_name} about {door.name} (dist={distance:.2f})")
+            self.log_entries.append(f"   ❌ FAILED! {distance:.2f} > {self.comm_distance_threshold:.1f} → Too far to communicate!")
+            self.simple_log_entries.append(f"✗ COMM FAILED: {other_robot.turtle_name} about {door.name} (dist={distance:.2f} > {self.comm_distance_threshold:.1f})")
             
             return False
     
@@ -351,12 +358,12 @@ class Robot:
         self.log_entries.append(f"    Verification: {bel_open:.4f} + {bel_closed:.4f} = {bel_open + bel_closed:.4f}")
         
         # Why this normalization?
-        self.log_entries.append(f"\n  WHY NORMALIZE?")
-        self.log_entries.append(f"    - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)")
-        self.log_entries.append(f"    - The proportionality constant ensures ∑P(x|z) = 1")
-        self.log_entries.append(f"    - This maintains the probability distribution property")
-        self.log_entries.append(f"    - Alternative: Maximum likelihood would pick max, losing uncertainty info")
-        self.log_entries.append(f"    - Alternative: Additive update would violate probability axioms")
+        # self.log_entries.append(f"\n  WHY NORMALIZE?")
+        # self.log_entries.append(f"    - Bayes rule gives us P(x|z) ∝ P(z|x) × P(x)")
+        # self.log_entries.append(f"    - The proportionality constant ensures ∑P(x|z) = 1")
+        # self.log_entries.append(f"    - This maintains the probability distribution property")
+        # self.log_entries.append(f"    - Alternative: Maximum likelihood would pick max, losing uncertainty info")
+        # self.log_entries.append(f"    - Alternative: Additive update would violate probability axioms")
         
         # Update beliefs
         self.beliefs[door_name]["open"] = bel_open
@@ -371,88 +378,87 @@ class Robot:
         """Merge this robot's belief with another robot's belief using weighted average"""
         door_name = door.name
         
-        before_open = self.beliefs[door_name]["open"]
-        before_closed = self.beliefs[door_name]["closed"]
+        # Store original values
+        my_old_open = self.beliefs[door_name]["open"]
+        my_old_closed = self.beliefs[door_name]["closed"]
+        other_open = other_belief["open"]
+        other_closed = other_belief["closed"]
         
-        self.log_entries.append(f"\n=== BELIEF MERGING FOR {door_name.upper()} ===")
-        self.log_entries.append(f"COMMUNICATION: Receiving belief from other robot")
-        self.log_entries.append(f"\n  Current robot's belief:")
-        self.log_entries.append(f"    bel_self(open) = {before_open:.4f}")
-        self.log_entries.append(f"    bel_self(closed) = {before_closed:.4f}")
-        self.log_entries.append(f"\n  Other robot's belief:")
-        self.log_entries.append(f"    bel_other(open) = {other_belief['open']:.4f}")
-        self.log_entries.append(f"    bel_other(closed) = {other_belief['closed']:.4f}")
+        # Weights for merging
+        my_trust = 1 - self.comm_weight  # How much I trust my own belief
+        other_trust = self.comm_weight   # How much I trust other robot's belief
         
-        # Weighted average merge
-        self_weight = 1 - self.comm_weight
-        other_weight = self.comm_weight
+        # SIMPLE EXPLANATION IN LOG
+        self.log_entries.append(f"\n🤝 MERGING BELIEFS FOR {door_name.upper()}")
+        self.log_entries.append(f"📊 STEP 1: WHAT DO WE HAVE?")
+        self.log_entries.append(f"   My belief:    open = {my_old_open:.3f}, closed = {my_old_closed:.3f}")
+        self.log_entries.append(f"   Other belief: open = {other_open:.3f}, closed = {other_closed:.3f}")
+        self.log_entries.append(f"")
         
-        self.log_entries.append(f"\n  WEIGHTED CONSENSUS FUSION:")
-        self.log_entries.append(f"    Communication weight (other robot's influence) = {self.comm_weight:.2f}")
-        self.log_entries.append(f"    Self weight = 1 - {self.comm_weight:.2f} = {self_weight:.2f}")
-        self.log_entries.append(f"    Other weight = {other_weight:.2f}")
+        self.log_entries.append(f"⚖️  STEP 2: HOW MUCH DO WE TRUST EACH OTHER?")
+        self.log_entries.append(f"   I trust myself:     {my_trust:.1f} ({int(my_trust*100)}%)")
+        self.log_entries.append(f"   I trust other robot: {other_trust:.1f} ({int(other_trust*100)}%)")
+        self.log_entries.append(f"   → This means I will keep {int(my_trust*100)}% of my belief and take {int(other_trust*100)}% from other robot")
+        self.log_entries.append(f"")
         
-        # Calculate merged beliefs step by step
-        merged_open_term1 = self_weight * self.beliefs[door_name]["open"]
-        merged_open_term2 = other_weight * other_belief["open"]
-        merged_closed_term1 = self_weight * self.beliefs[door_name]["closed"]
-        merged_closed_term2 = other_weight * other_belief["closed"]
+        # Calculate weighted average
+        new_open = my_trust * my_old_open + other_trust * other_open
+        new_closed = my_trust * my_old_closed + other_trust * other_closed
         
-        merged_open = merged_open_term1 + merged_open_term2
-        merged_closed = merged_closed_term1 + merged_closed_term2
+        self.log_entries.append(f"🧮 STEP 3: WEIGHTED AVERAGE CALCULATION")
+        self.log_entries.append(f"   New OPEN belief  = ({my_trust:.1f} × {my_old_open:.3f}) + ({other_trust:.1f} × {other_open:.3f})")
+        self.log_entries.append(f"                    = {my_trust * my_old_open:.3f} + {other_trust * other_open:.3f}")
+        self.log_entries.append(f"                    = {new_open:.3f}")
+        self.log_entries.append(f"")
+        self.log_entries.append(f"   New CLOSED belief = ({my_trust:.1f} × {my_old_closed:.3f}) + ({other_trust:.1f} × {other_closed:.3f})")
+        self.log_entries.append(f"                     = {my_trust * my_old_closed:.3f} + {other_trust * other_closed:.3f}")
+        self.log_entries.append(f"                     = {new_closed:.3f}")
+        self.log_entries.append(f"")
         
-        self.log_entries.append(f"\n  Fusion calculations:")
-        self.log_entries.append(f"    merged(open) = w_self × bel_self(open) + w_other × bel_other(open)")
-        self.log_entries.append(f"                 = {self_weight:.2f} × {before_open:.4f} + {other_weight:.2f} × {other_belief['open']:.4f}")
-        self.log_entries.append(f"                 = {merged_open_term1:.4f} + {merged_open_term2:.4f} = {merged_open:.4f}")
+        # Check if normalization needed
+        total_belief = new_open + new_closed
+        self.log_entries.append(f"✅ STEP 4: CHECK IF PROBABILITIES SUM TO 1.0")
+        self.log_entries.append(f"   Sum = {new_open:.3f} + {new_closed:.3f} = {total_belief:.3f}")
         
-        self.log_entries.append(f"    merged(closed) = w_self × bel_self(closed) + w_other × bel_other(closed)")
-        self.log_entries.append(f"                   = {self_weight:.2f} × {before_closed:.4f} + {other_weight:.2f} × {other_belief['closed']:.4f}")
-        self.log_entries.append(f"                   = {merged_closed_term1:.4f} + {merged_closed_term2:.4f} = {merged_closed:.4f}")
-        
-        # Normalize (should be ≈1 already for weighted average, but ensure exact)
-        total = merged_open + merged_closed
-        self.log_entries.append(f"\n  Normalization check:")
-        self.log_entries.append(f"    Sum before normalization = {merged_open:.4f} + {merged_closed:.4f} = {total:.4f}")
-        
-        if abs(total - 1.0) > 1e-10:
-            eta = 1.0 / total
-            merged_open_unnorm = merged_open
-            merged_closed_unnorm = merged_closed
-            merged_open *= eta
-            merged_closed *= eta
-            self.log_entries.append(f"    Normalization needed: η = 1/{total:.4f} = {eta:.4f}")
-            self.log_entries.append(f"    Normalized merged(open) = {merged_open_unnorm:.4f} × {eta:.4f} = {merged_open:.4f}")
-            self.log_entries.append(f"    Normalized merged(closed) = {merged_closed_unnorm:.4f} × {eta:.4f} = {merged_closed:.4f}")
+        if abs(total_belief - 1.0) > 0.001:
+            # Need normalization
+            eta = 1.0 / total_belief
+            old_new_open = new_open
+            old_new_closed = new_closed
+            new_open *= eta
+            new_closed *= eta
+            
+            self.log_entries.append(f"   ⚠️  NOT EQUAL TO 1.0! Need to normalize:")
+            self.log_entries.append(f"   Normalization factor = 1 ÷ {total_belief:.3f} = {eta:.3f}")
+            self.log_entries.append(f"   Final OPEN  = {old_new_open:.3f} × {eta:.3f} = {new_open:.3f}")
+            self.log_entries.append(f"   Final CLOSED = {old_new_closed:.3f} × {eta:.3f} = {new_closed:.3f}")
         else:
-            self.log_entries.append(f"    No normalization needed (sum ≈ 1.0)")
+            self.log_entries.append(f"   ✅ Perfect! Sum = 1.0, no normalization needed")
         
         # Update beliefs
-        self.beliefs[door_name]["open"] = merged_open
-        self.beliefs[door_name]["closed"] = merged_closed
+        self.beliefs[door_name]["open"] = new_open
+        self.beliefs[door_name]["closed"] = new_closed
         
         # Show the change
-        change_open = merged_open - before_open
-        change_closed = merged_closed - before_closed
+        change_open = new_open - my_old_open
+        
+        self.log_entries.append(f"")
+        self.log_entries.append(f"📈 STEP 5: FINAL RESULT")
+        self.log_entries.append(f"   BEFORE: open = {my_old_open:.3f}")
+        self.log_entries.append(f"   AFTER:  open = {new_open:.3f}")
+        self.log_entries.append(f"   CHANGE: {change_open:+.3f} ({'increased' if change_open > 0 else 'decreased' if change_open < 0 else 'no change'})")
+        self.log_entries.append(f"")
+        
+        self.log_entries.append(f"💡 WHY THIS METHOD?")
+        self.log_entries.append(f"   • Weighted Average = combines both robots' knowledge")
+        self.log_entries.append(f"   • Trust levels = prevents one robot from dominating")
+        self.log_entries.append(f"   • Keeps uncertainty = maintains probabilistic reasoning")
         
         # Add simple log entry for belief merging
-        self.simple_log_entries.append(f"Merged {door_name}: before={before_open:.3f}, after={merged_open:.3f}, change={change_open:+.3f}")
+        self.simple_log_entries.append(f"MERGED {door_name}: {my_old_open:.3f} → {new_open:.3f} (change: {change_open:+.3f})")
         
-        self.log_entries.append(f"\n  FUSION RESULT:")
-        self.log_entries.append(f"    Final merged(open) = {merged_open:.4f}")
-        self.log_entries.append(f"    Final merged(closed) = {merged_closed:.4f}")
-        self.log_entries.append(f"    Change in open belief: {change_open:+.4f}")
-        self.log_entries.append(f"    Change in closed belief: {change_closed:+.4f}")
-        
-        # Explain why weighted average
-        self.log_entries.append(f"\n  WHY WEIGHTED AVERAGE?")
-        self.log_entries.append(f"    - Preserves uncertainty from both robots")
-        self.log_entries.append(f"    - Communication weight controls trust level")
-        self.log_entries.append(f"    - Alternative: Multiplication would assume independence")
-        self.log_entries.append(f"    - Alternative: Max would lose one robot's information")
-        self.log_entries.append(f"    - This method: Consensus-based distributed estimation")
-        
-        self.log_entries.append(f"\n=== BELIEF MERGING COMPLETE FOR {door_name.upper()} ===")
+        self.log_entries.append(f"\n🤝 BELIEF MERGING COMPLETE FOR {door_name.upper()}")
+        self.log_entries.append("=" * 60)
     
     def decide_action(self, door):
         """Decide whether to push or do nothing based on belief"""
@@ -602,9 +608,9 @@ def main():
     
     rospy.loginfo("All doors spawned")
     
-    # Create robot objects
-    robot1 = Robot(1, "robot1", 1.0, 1.0, doors, threshold=0.6, comm_weight=0.3)
-    robot2 = Robot(2, "robot2", 10.0, 10.0, doors, threshold=0.5, comm_weight=0.4)
+    # Create robot objects with reduced communication distance threshold
+    robot1 = Robot(1, "robot1", 1.0, 1.0, doors, threshold=0.6, comm_weight=0.3, comm_distance_threshold=6.0)
+    robot2 = Robot(2, "robot2", 10.0, 10.0, doors, threshold=0.5, comm_weight=0.4, comm_distance_threshold=6.0)
     
     # Set robot colors (different colors for each robot)
     robot1.set_color(255, 0, 0)  # Red
