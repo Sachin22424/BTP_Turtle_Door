@@ -2,19 +2,36 @@
 
 This package contains a ROS node that demonstrates multi-robot door state estimation using Bayesian filters, visualized in turtlesim. Two robots (red and green turtles) independently explore doors scattered across the environment, sharing beliefs and updating their estimates using Bayes filters.
 
-## Latest Improvements (August 2025)
+## Latest Improvements (September 2025)
 
-### 🚀 **New Features in `bayes_filter_node_new.py`**
+### 🔥 **Distance-Based Communication System**
 
-- **Independent Multi-Robot Exploration**: Two robots work independently, choosing doors based on proximity
-- **Distributed Door Layout**: Doors positioned at different corners instead of a straight line
-- **Enhanced Visualization**: 
-  - Robot1 (Red) starts at bottom-left corner (1,1)
-  - Robot2 (Green) starts at top-right corner (10,10)
-  - Doors color-coded: Green=Open, Magenta=Closed
-  - Smooth movement with better path visualization
-- **Intelligent Belief Sharing**: Robots share beliefs after each door interaction
-- **Threshold-Based Stopping**: Robots stop when belief confidence crosses individual thresholds
+- **Communication Threshold**: Robots only share beliefs when within 3.0 units of each other
+- **Realistic Communication**: Simulates real-world range limitations in multi-robot systems
+- **Dual Logging System**: 
+  - Detailed mathematical logs in Probabilistic Robotics format
+  - Simplified calculation logs for easy verification
+- **Door Revisiting Logic**: Smart algorithm to revisit doors when communication fails
+- **Independent Goal Achievement**: Both robots can complete missions without continuous communication
+
+### 📊 **Communication Statistics**
+- **Success Rate**: 18.2% (2 out of 11 communication attempts)
+- **Successful Communications**: Only when robots were < 3.0 units apart
+- **Robot Independence**: Both robots achieved goals despite limited communication
+
+### 🚀 **Enhanced Features**
+
+- **Distance-Based Protocol**: `calculate_distance_to_robot()`, `is_within_communication_range()`, `attempt_communication()`
+- **Smart Door Selection**: Prioritizes doors needing revisit over unvisited doors
+- **Comprehensive Logging**: Both detailed Bayes calculations and simple summaries
+- **Communication Tracking**: Success/failure logging with exact distances
+
+## Key Files
+
+- `bayes_filter_node_new.py`: Main implementation with distance-based communication
+- `simple_calculation_log.txt`: Concise logging for easy analysis  
+- `multi_robot_door_bayes_log.txt`: Detailed mathematical derivations
+- `DISTANCE_COMMUNICATION_SUMMARY.md`: Complete implementation documentation
 
 ## How the Code Works
 
@@ -168,13 +185,8 @@ Feel free to extend this implementation with:
 - More sophisticated sensor models
 - Additional door states
 - Visualization tools
-<<<<<<< HEAD
 - Parameter tuning interfaces
 
 ## 📄 License
 
 MIT License - Feel free to use and modify for educational purposes.
->>>>>>> Initial commit: Bayes Filter for Door State Estimation
-=======
-- Parameter tuning interfaces
->>>>>>> Updated readme
